@@ -12,6 +12,8 @@ services:
 
   keycloak:
     image: docker.io/bitnami/keycloak:18
+    environment:
+      - KC_HOSTNAME_STRICT_HTTPS=false
     depends_on:
       - postgresql
     ports:
