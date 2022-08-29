@@ -1,14 +1,12 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import Keycloak from "keycloak-js";
-
 import App from "./App.vue";
 import router from "./router";
-
 import "./assets/main.css";
 
 let initOptions = {
-  url: "http://127.0.0.1:8080/",
+  url: "https://31.187.76.109:8443/",
   realm: "myrealm",
   clientId: "myclient",
   onLoad: "login-required",
@@ -22,13 +20,14 @@ keycloak
     if (!auth) {
       window.location.reload();
     } else {
-      const app = createApp(App, keycloak);
+      const app = createApp(App);
       app.use(createPinia());
       app.use(router);
+      app.provide("keycloak", keycloak);
       app.mount("#app");
     }
 
-    //Token Refresh
+    //Refresh token every 70 seconds
     setInterval(() => {
       keycloak
         .updateToken(70)

@@ -1,6 +1,11 @@
 <script setup>
+import { inject } from "vue";
 import { RouterLink, RouterView } from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
+const keycloak = inject("keycloak");
+if (keycloak) {
+  console.log("token = " + keycloak);
+}
 </script>
 
 <template>
