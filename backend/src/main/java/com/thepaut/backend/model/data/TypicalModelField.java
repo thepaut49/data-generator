@@ -31,10 +31,16 @@ public class TypicalModelField {
     @Column(name = "fixed_value")
     private String fixedValue;
 
+    @Column(name = "fixed_blob_value")
+    @Lob
+    private String fixedBlobValue;
+
+    @Column(name = "is_blob_value")
+    private boolean isBlobValue;
+
     @ManyToOne
     @JoinColumn(name = "generation_options_id")
     private GenerationOptions generationOptions;
-
 
 
     @Column(name = "modified_by")

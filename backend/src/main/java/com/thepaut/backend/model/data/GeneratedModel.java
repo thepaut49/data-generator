@@ -30,9 +30,6 @@ public class GeneratedModel {
     @OneToMany(mappedBy = "generatedModel", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GeneratedModelField> generatedModelFields = new ArrayList<>();
 
-    @OneToMany(mappedBy = "generatedModel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GeneratedModelBlobField> generatedModelBlobFields = new ArrayList<>();
-
     @Column(name = "modified_by")
     private String modifiedBy;
 
