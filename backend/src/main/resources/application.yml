@@ -1,0 +1,54 @@
+server:
+  port : 9090
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://31.187.76.109:8080/realms/myrealm
+          jwk-set-uri: http://31.187.76.109:8080/realms/myrealm/protocol/openid-connect/certs
+      #client:
+       # registration:
+        #  keycloak:
+         #   client-id: backend
+          #  client-secret: 'jBCmPXNyKHSVokM29omsd48KeaAdRmQ1'
+           # authorization-grant-type: authorization_code
+           # redirectUri: '{baseUrl}/login/oauth2/code/{registrationId}'
+           # scope:
+            #  - openid
+             # - profile
+             # - email
+        #provider:
+        #  keycloak:
+         #   authorization-uri: https://31.187.76.109:8443/realms/myrealm/protocol/openid-connect/auth
+          #  token-uri: https://31.187.76.109:8443/realms/myrealm/protocol/openid-connect/
+           # jwk-set-uri: https://31.187.76.109:8443/realms/myrealm/protocol/openid-connect/certs
+            #user-info-uri: https://31.187.76.109:8443/realms/myrealm/protocol/openid-connect/userinfo
+           # user-name-attribute: preferred_username
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    password: '1234'
+    driver-class-name: org.postgresql.Driver
+    username: root
+    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:5432/db_data_generator
+
+
+# keycloak:
+  #auth-server-url: https://31.187.76.109:8443/auth
+  #realm: myrealm
+  #resource: backend
+  #credentials:
+   # secret: rp8ApWNunW0Tiyt1CVakWQBFntQ8G0Io
+  #bearer-only: 'true'
+  #use-resource-role-mappings: 'true'
+  #ssl-required: none

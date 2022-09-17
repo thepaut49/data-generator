@@ -1,8 +1,6 @@
 package com.thepaut.backend.service;
 
-import com.thepaut.backend.dto.SampleDataCategoryDto;
 import com.thepaut.backend.dto.SampleDataDto;
-import com.thepaut.backend.mapper.SampleDataCategoryMapper;
 import com.thepaut.backend.mapper.SampleDataMapper;
 import com.thepaut.backend.model.data.SampleData;
 import com.thepaut.backend.model.data.SampleDataCategory;
@@ -14,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SampleDataService implements ISampleDataService{
@@ -27,7 +26,8 @@ public class SampleDataService implements ISampleDataService{
 
     @Override
     public List<SampleDataDto> getSampleDatas(String categoryName, String key, String value , boolean isBlobValue) {
-        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findByName(categoryName).orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
+        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
 
         List<SampleData> results;
         // catagory + key + value
@@ -66,34 +66,67 @@ public class SampleDataService implements ISampleDataService{
         } else {
             results = sampleDataRepository.findAll();
         }
-        return results.stream().map(sampleData -> SampleDataMapper.INSTANCE.convert(sampleData)).toList();
+        return results.stream().map(SampleDataMapper.INSTANCE::convert).toList();
     }
 
     @Override
-    public SampleDataDto rollbackToPreviousVersion() {
-        return null;
+    public SampleDataDto getSampleData(String categoryName, String key) {
+        SampleData sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key)
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
+        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyOrderByVersionDesc(categoryName, key));
+        return SampleDataMapper.INSTANCE.convert(sampleData);
     }
 
     @Override
-    public SampleDataDto createSampleData(SampleDataDto sampleDataDto) {
+    public SampleDataDto rollbackToPreviousVersion(String categoryName, String key) {
+        sampleDataRepository.deleteFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key);
+        SampleData sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key).orElseThrow( () -> new ResourceNotFoundException("Catégorie " + categoryName + " clé : " + key + "  inconnu !" ));
+        Long previousVersion = sampleData.getVersion();
+        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryName, key, previousVersion));
+        return SampleDataMapper.INSTANCE.convert(sampleData);
+    }
+
+    @Override
+    public SampleDataDto rollbackToVersion(String categoryName, String key, Long version) {
+        sampleDataRepository.deleteByCategoryNameAndKeyAndVersionGreaterThan(categoryName, key, version);
+        SampleData sampleData = sampleDataRepository.findByCategoryNameAndKeyAndVersion(categoryName, key, version).orElseThrow( () -> new ResourceNotFoundException("Clé version " + version + " introuvable !" ));
+        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryName, key, version));
+        return SampleDataMapper.INSTANCE.convert(sampleData);
+    }
+
+    @Override
+    public SampleDataDto createSampleData(String categoryName, SampleDataDto sampleDataDto) {
+        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
         SampleData sampleData = SampleDataMapper.INSTANCE.convert(sampleDataDto);
+        sampleData.setCategory(sampleDataCategory);
+        sampleData.setModifiedBy(UserService.getUserId());
+        sampleData.addVersion(sampleData);
         return SampleDataMapper.INSTANCE.convert(sampleDataRepository.save(sampleData));
     }
 
     @Override
-    public SampleDataDto updateSampleData(SampleDataDto sampleDataDto) {
+    public SampleDataDto updateSampleData(String categoryName, String key, SampleDataDto sampleDataDto) {
         SampleData sampleData = SampleDataMapper.INSTANCE.convert(sampleDataDto);
-        return null;
+        sampleData.setVersion(newVersion(categoryName, key));
+        sampleData.setModifiedBy(UserService.getUserId());
+        sampleData = sampleDataRepository.save(sampleData);
+        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyOrderByVersionDesc(categoryName, key));
+        return SampleDataMapper.INSTANCE.convert(sampleData);
     }
 
     @Override
-    public boolean deleteSampleData(String category, String key) {
-        return false;
+    public boolean deleteSampleDataByCategoryNameAndKey(String categoryName, String key) {
+        return sampleDataRepository.deleteByCategoryNameAndKey(categoryName, key) > 0;
     }
 
-    @Override
-    public boolean deleteSampleData(Long id) {
-        sampleDataRepository.deleteById(id);
-        return true;
+    private Long newVersion(String categoryName, String key) {
+        Optional<SampleData> sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key);
+        if (sampleData.isPresent()) {
+            return sampleData.get().getVersion() + 1;
+        }
+        else {
+            return 0L;
+        }
     }
 }

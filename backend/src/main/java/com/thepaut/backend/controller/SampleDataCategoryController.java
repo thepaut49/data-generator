@@ -1,6 +1,7 @@
 package com.thepaut.backend.controller;
 
 import com.thepaut.backend.dto.ListResponse;
+import com.thepaut.backend.dto.SampleDataCategoryCreationDto;
 import com.thepaut.backend.dto.SampleDataCategoryDto;
 import com.thepaut.backend.service.ISampleDataCategoryService;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,12 @@ public class SampleDataCategoryController {
     private ISampleDataCategoryService sampleDataCategoryService;
 
     @PostMapping
-    public SampleDataCategoryDto create(@RequestBody @Valid SampleDataCategoryDto sampleDataCategoryDto) {
+    public SampleDataCategoryDto create(@RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
         return sampleDataCategoryService.createSampleDataCategory(sampleDataCategoryDto);
     }
 
     @PutMapping("{categoryName}")
-    public SampleDataCategoryDto update(@PathVariable String categoryName,  @RequestBody @Valid SampleDataCategoryDto sampleDataCategoryDto) {
+    public SampleDataCategoryDto update(@PathVariable String categoryName,  @RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
         return sampleDataCategoryService.updateSampleDataCategory(categoryName, sampleDataCategoryDto);
     }
 

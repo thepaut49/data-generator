@@ -1,6 +1,5 @@
 package com.thepaut.backend.model.data;
 
-import com.thepaut.backend.dto.SampleDataCategoryDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +17,7 @@ import java.util.List;
 public class SampleDataCategory {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private Long id;
 

@@ -1,7 +1,9 @@
 package com.thepaut.backend.service;
 
+import com.thepaut.backend.dto.SampleDataCategoryCreationDto;
 import com.thepaut.backend.dto.SampleDataCategoryDto;
 
+import javax.validation.Valid;
 import java.util.List;
 
 public interface ISampleDataCategoryService {
@@ -41,7 +43,7 @@ public interface ISampleDataCategoryService {
      * @param sampleDataCategoryDto
      * @return
      */
-    SampleDataCategoryDto createSampleDataCategory(SampleDataCategoryDto sampleDataCategoryDto);
+    SampleDataCategoryDto createSampleDataCategory(@Valid SampleDataCategoryCreationDto sampleDataCategoryDto);
 
     /**
      * Mise à jour de la catégorie, on crée un enregistrement avec un numéro de version + 1 sans modifier l'ancienne version
@@ -49,7 +51,7 @@ public interface ISampleDataCategoryService {
      * @param sampleDataCategoryDto
      * @return
      */
-    SampleDataCategoryDto updateSampleDataCategory(String categoryName, SampleDataCategoryDto sampleDataCategoryDto);
+    SampleDataCategoryDto updateSampleDataCategory(String categoryName, @Valid SampleDataCategoryCreationDto sampleDataCategoryDto);
 
     /**
      * Suppression de la catégorie

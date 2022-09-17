@@ -6,18 +6,18 @@ import java.util.List;
 
 public interface ISampleDataService {
 
-    List<SampleDataDto> getSampleDatas(String categoryName, String key, String value, boolean isBlobValue) ;
+    List<SampleDataDto> getSampleDatas(String categoryName, String key, String value, boolean isBlobValue);
 
-    SampleDataDto rollbackToPreviousVersion();
+    SampleDataDto getSampleData(String categoryName, String key);
 
-    SampleDataDto rollbackToVersion(Long version);
+    SampleDataDto rollbackToPreviousVersion(String categoryName, String key);
 
-    SampleDataDto createSampleData(SampleDataDto sampleDataDto);
+    SampleDataDto rollbackToVersion(String categoryName, String key, Long version);
 
-    SampleDataDto updateSampleData(SampleDataDto sampleDataDto);
+    SampleDataDto createSampleData(String categoryName, SampleDataDto sampleDataDto);
 
-    boolean deleteSampleData(String category, String key);
+    SampleDataDto updateSampleData(String categoryName, String key, SampleDataDto sampleDataDto);
 
-    boolean deleteSampleData(Long id);
+    boolean deleteSampleDataByCategoryNameAndKey(String category, String key);
 
 }

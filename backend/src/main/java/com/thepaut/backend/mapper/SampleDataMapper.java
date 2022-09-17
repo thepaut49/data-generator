@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 
-@Mapper
+@Mapper( uses = { SampleDataCategoryMapper.class})
 public interface  SampleDataMapper {
 
     SampleDataMapper INSTANCE = Mappers.getMapper( SampleDataMapper.class );

@@ -4,8 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,7 +25,7 @@ public class SampleData {
     private String key;
 
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "sample_data_category_id")
     private SampleDataCategory category;
 
     @Column(name = "sample_data_value")
@@ -48,6 +48,14 @@ public class SampleData {
     private LocalDateTime modifiedAt;
 
     @Transient
-    private List<SampleData> sampleDataVersions;
+    private List<SampleData> sampleDataVersions = new ArrayList<>();
+
+    public void addVersion(SampleData sampleData) {
+        sampleDataVersions.add(sampleData);
+    }
+
+    public void removeVersion(SampleData sampleData) {
+        sampleDataVersions.remove(sampleData);
+    }
 
 }
