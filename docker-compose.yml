@@ -3,19 +3,18 @@ version: "3"
 services:
   # App backend service
   app-server:
+    network_mode: bridge
     # Configuration for building the docker image for the backend service
     build:
       context: backend # Use an image built from the specified dockerfile in the `apiNihongo` directory.
       dockerfile: Dockerfile
     ports:
       - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
-    restart: always
     depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - POSTGRESQL_HOST=postgres
+      - postgres
+    restart: always
   postgres:
+    network_mode: bridge
     image: postgres:13.1
     healthcheck:
       test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
@@ -37,6 +36,7 @@ services:
     ports:
       - 5432:5432
   keycloak:
+    network_mode: bridge
     image: quay.io/keycloak/keycloak:legacy
     environment:
       DB_VENDOR: POSTGRES
