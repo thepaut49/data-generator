@@ -11,7 +11,10 @@ services:
       - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRESQL_HOST=postgres
   postgres:
     image: postgres:13.1
     healthcheck:
