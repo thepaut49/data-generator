@@ -1,6 +1,5 @@
-version: "3.1"
+version: "3"
 
-# Define services
 services:
   # App backend service
   app-server:
@@ -11,10 +10,47 @@ services:
     ports:
       - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
     restart: always
-networks:
-  default:
-    name: "host"
-    external: true
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:13.1
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=Password?
+      - APP_DB_USER=keycloak
+      - APP_DB_PASS=Francis29260
+      - APP_DB_NAME=db_keycloak
+      - APP_DB_USER2=root
+      - APP_DB_PASS2=1234
+      - APP_DB_NAME2=db_data_generator
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+  keycloak:
+    image: quay.io/keycloak/keycloak:legacy
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: root
+      DB_SCHEMA: public
+      DB_PASSWORD: 1234
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: Pa55w0rd
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "ssl=true"
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+
   #depends_on:
   # - db # This service depends on mysql. Start that first.
   # environment: # Pass environment variables to the service
