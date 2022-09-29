@@ -5,7 +5,7 @@ COPY mvnw pom.xml ./
 RUN chmod a+x ./mvnw
 RUN ./mvnw dependency:go-offline
 COPY ./src ./src
-RUN ./mvnw clean install
+RUN ./mvnw clean install -Dmaven.test.skip=true
  
  
 FROM eclipse-temurin:17-jre-jammy

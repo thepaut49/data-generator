@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.3"
 
 services:
   db-postgres:
@@ -21,6 +21,7 @@ services:
   # App backend service
   app-server:
     # Configuration for building the docker image for the backend service
+    restart: on-failure:10
     build:
       context: backend # Use an image built from the specified dockerfile in the `apiNihongo` directory.
       dockerfile: Dockerfile
