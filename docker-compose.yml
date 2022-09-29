@@ -1,4 +1,4 @@
-version: "3"
+version: "3.8"
 
 services:
   db-postgres:
@@ -31,6 +31,8 @@ services:
       - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
     links:
       - db-postgres
+    depends_on:
+      - db-postgres
   keycloak:
     image: quay.io/keycloak/keycloak:legacy
     container_name: keycloak-app
@@ -48,6 +50,8 @@ services:
     ports:
       - 8080:8080
     links:
+      - db-postgres
+    depends_on:
       - db-postgres
 
 volumes:
