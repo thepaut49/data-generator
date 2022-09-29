@@ -20,7 +20,8 @@ spring:
       ddl-auto: create
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    password: "1234"
     driver-class-name: org.postgresql.Driver
     username: root
-    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:5432/db_data_generator
+    password: "1234"
+    #  url prod: jdbc:postgresql://${DB_SERVER}:5432/db_data_generator
+    url: jdbc:postgresql://localhost:5432/db_data_generator

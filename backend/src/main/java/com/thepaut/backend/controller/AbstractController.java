@@ -1,2 +1,4 @@
-package com.thepaut.backend.controller;public interface AbstractController {
+package com.thepaut.backend.controller;
+
+public interface AbstractController {
 }

@@ -1,27 +1,10 @@
 version: "3"
 
 services:
-  # App backend service
-  app-server:
-    network_mode: bridge
-    # Configuration for building the docker image for the backend service
-    build:
-      context: backend # Use an image built from the specified dockerfile in the `apiNihongo` directory.
-      dockerfile: Dockerfile
-    ports:
-      - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
-    depends_on:
-      - postgres
-    restart: always
   postgres:
-    network_mode: bridge
     image: postgres:13.1
-    healthcheck:
-      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "root"]
-      timeout: 45s
-      interval: 10s
-      retries: 10
     restart: always
+    container_name: postgres-database
     environment:
       - POSTGRES_USER=docker
       - POSTGRES_PASSWORD=Password?
@@ -33,18 +16,32 @@ services:
       - APP_DB_NAME2=db_data_generator
     volumes:
       - ./db:/docker-entrypoint-initdb.d/
+      - db:/var/lib/postgresql/data
     ports:
       - 5432:5432
+  # App backend service
+  app-server:
+    # Configuration for building the docker image for the backend service
+    build:
+      context: backend # Use an image built from the specified dockerfile in the `apiNihongo` directory.
+      dockerfile: Dockerfile
+    container_name: backend-app
+    environment:
+      - DB_SERVER=postgres
+    ports:
+      - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
+    links:
+      - postgres
   keycloak:
-    network_mode: bridge
     image: quay.io/keycloak/keycloak:legacy
+    container_name: keycloak-app
     environment:
       DB_VENDOR: POSTGRES
       DB_ADDR: postgres
       DB_DATABASE: keycloak
-      DB_USER: root
+      DB_USER: keycloak
       DB_SCHEMA: public
-      DB_PASSWORD: 1234
+      DB_PASSWORD: Francis29260
       KEYCLOAK_USER: admin
       KEYCLOAK_PASSWORD: Pa55w0rd
       # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
@@ -54,12 +51,9 @@ services:
     depends_on:
       - postgres
 
-  #depends_on:
-  # - db # This service depends on mysql. Start that first.
-  # environment: # Pass environment variables to the service
-  #  SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/DB_NAME?useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&allowPublicKeyRetrieval=true
-  # SPRING_DATASOURCE_USERNAME: DB_USERNAME
-  # SPRING_DATASOURCE_PASSWORD: DB_PASSWORD
+volumes:
+  db:
+    driver: local
 
   # Frontend Service
   #app-client:
