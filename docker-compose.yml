@@ -38,8 +38,7 @@ services:
     links:
       - db-postgres
     depends_on:
-      db-postgres:
-        condition: service_healthy
+      - db-postgres
   keycloak:
     restart: on-failure:10
     image: quay.io/keycloak/keycloak:legacy
@@ -60,8 +59,7 @@ services:
     links:
       - db-postgres
     depends_on:
-      db-postgres:
-        condition: service_healthy
+      - db-postgres
 
 volumes:
   db:
