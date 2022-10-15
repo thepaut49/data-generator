@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+@CrossOrigin(origins = {"http://127.0.0.1:5173", "http://localhost:9090"}, maxAge = 3600)
 @RestController
 @RequestMapping(path = "api/sample-data-categories")
 @RequiredArgsConstructor

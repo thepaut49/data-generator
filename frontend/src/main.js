@@ -4,31 +4,47 @@ import Keycloak from "keycloak-js";
 import App from "./App.vue";
 import router from "./router";
 import "./assets/main.css";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faSync, faPlus, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { useUserStore } from "./stores/UserStore";
+
+library.add(faSync, faPlus, faEdit);
 
 let initOptions = {
-  url: "https://31.187.76.109:8443/",
+  url: "http://31.187.76.109:8080/auth",
   realm: "myrealm",
-  clientId: "myclient",
+  clientId: "frontend",
   onLoad: "login-required",
 };
 
 let keycloak = new Keycloak(initOptions);
 
+console.log("origin = " + window.location.origin);
+
 keycloak
-  .init({ onLoad: initOptions.onLoad })
+  .init({
+    onLoad: initOptions.onLoad,
+    // silentCheckSsoRedirectUri:
+    //  window.location.origin + "/silent-check-sso.html",
+  })
   .then((auth) => {
     if (!auth) {
       window.location.reload();
     } else {
+      const pinia = createPinia();
       const app = createApp(App);
-      app.use(createPinia());
+      app.use(pinia);
       app.use(router);
       app.provide("keycloak", keycloak);
+      app.component("font-awesome-icon", FontAwesomeIcon);
       app.mount("#app");
+      const userStore = useUserStore();
+      userStore.initKeycloak(keycloak);
     }
 
     //Refresh token every 70 seconds
-    setInterval(() => {
+    /*setInterval(() => {
       keycloak
         .updateToken(70)
         .then((refreshed) => {
@@ -49,8 +65,8 @@ keycloak
         .catch(() => {
           console.error("Failed to refresh token");
         });
-    }, 6000);
+    }, 290000);*/
   })
-  .catch(() => {
-    console.error("Authenticated Failed");
+  .catch((error) => {
+    console.error("Authenticated Failed : {}", error);
   });

@@ -5,7 +5,7 @@ logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: TRACE
 
 spring:
   security:
@@ -17,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     driver-class-name: org.postgresql.Driver

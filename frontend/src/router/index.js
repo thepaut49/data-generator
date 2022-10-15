@@ -10,6 +10,12 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: "/Sample-data-categories",
+      name: "SampleDataCategories",
+      component: () =>
+        import("../views/SampleDataCategory/SampleDataCategories.vue"),
+    },
+    {
       path: "/about",
       name: "about",
       // route level code-splitting
