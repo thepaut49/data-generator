@@ -1,0 +1,26 @@
+server:
+  port: 9090
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://31.187.76.109:8080/auth/realms/myrealm
+          jwk-set-uri: http://31.187.76.109:8080/auth/realms/myrealm/protocol/openid-connect/certs
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: root
+    password: "1234"
+    url: jdbc:postgresql://${DB_SERVER:localhost}:5432/db_data_generator

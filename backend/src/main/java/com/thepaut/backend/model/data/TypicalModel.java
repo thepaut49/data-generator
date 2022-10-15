@@ -40,13 +40,6 @@ public class TypicalModel {
     )
     private List<TypicalModelField> fields = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(name = "typical_model_blob_fields",
-            joinColumns = @JoinColumn(name = "field_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "typical_model_id", referencedColumnName = "id")
-    )
-    private List<TypicalModelBlobField> blobFields = new ArrayList<>();
-
     @Column(name = "modified_by")
     private String modifiedBy;
 

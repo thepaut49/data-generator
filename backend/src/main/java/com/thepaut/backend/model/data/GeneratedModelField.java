@@ -30,6 +30,13 @@ public class GeneratedModelField {
     @Column(name = "generated_value")
     private String generatedValue;
 
+    @Column(name = "generated_blob_value")
+    @Lob
+    private String generatedBlobValue;
+
+    @Column(name = "is_blob_value")
+    private boolean isBlobValue;
+
     @ManyToOne
     @JoinColumn(name = "generated_model_id")
     private GeneratedModel generatedModel;

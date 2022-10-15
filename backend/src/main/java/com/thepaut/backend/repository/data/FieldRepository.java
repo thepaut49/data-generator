@@ -3,7 +3,6 @@ package com.thepaut.backend.repository.data;
 import com.thepaut.backend.model.data.Field;
 import com.thepaut.backend.model.data.FieldType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 

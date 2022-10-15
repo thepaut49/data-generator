@@ -1,0 +1,79 @@
+version: "3.3"
+
+services:
+  db-postgres:
+    image: postgres:13.1
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=Password?
+      - APP_DB_USER=keycloak
+      - APP_DB_PASS=Francis29260
+      - APP_DB_NAME=db_keycloak
+      - APP_DB_USER2=root
+      - APP_DB_PASS2=1234
+      - APP_DB_NAME2=db_data_generator
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - db:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  # App backend service
+  app-server:
+    # Configuration for building the docker image for the backend service
+    restart: on-failure:10
+    build:
+      context: backend # Use an image built from the specified dockerfile in the `apiNihongo` directory.
+      dockerfile: Dockerfile
+    container_name: backend-app
+    environment:
+      - DB_SERVER=db-postgres
+    ports:
+      - "9090:9090" # Forward the exposed port BACK_PORT on the container to port BACK_PORT on the host machine
+    links:
+      - db-postgres
+    depends_on:
+      - db-postgres
+  keycloak:
+    restart: on-failure:10
+    image: quay.io/keycloak/keycloak:legacy
+    container_name: keycloak-app
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db-postgres
+      DB_DATABASE: db_keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: Francis29260
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: Pa55w0rd
+      # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+      #JDBC_PARAMS: "ssl=true"
+    ports:
+      - 8080:8080
+    links:
+      - db-postgres
+    depends_on:
+      - db-postgres
+
+volumes:
+  db:
+    driver: local
+
+  # Frontend Service
+  #app-client:
+  # build:
+  #  context: front-end-nihongo-redux # Use an image built from the specified dockerfile in the `front-end-nihongo` directory.
+  # dockerfile: Dockerfile
+  #args:
+  # REACT_APP_API_BASE_URL: http://BACK_HOST_NAME:BACK_PORT
+  #ports:
+  # - "80:80" # Forward the exposed port 80 on the container to port 80 on the host machine
+  #restart: always
+  #depends_on:
+  # - app-server
