@@ -22,23 +22,23 @@ public class SampleDataCategoryController {
     private ISampleDataCategoryService sampleDataCategoryService;
 
     @PostMapping
-    public SampleDataCategoryDto create(@RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
-        return sampleDataCategoryService.createSampleDataCategory(sampleDataCategoryDto);
+    public ResponseEntity<SampleDataCategoryDto> create(@RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
+        return new ResponseEntity<>(sampleDataCategoryService.createSampleDataCategory(sampleDataCategoryDto), HttpStatus.CREATED);
     }
 
     @PutMapping("{categoryName}")
-    public SampleDataCategoryDto update(@PathVariable String categoryName,  @RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
-        return sampleDataCategoryService.updateSampleDataCategory(categoryName, sampleDataCategoryDto);
+    public ResponseEntity<SampleDataCategoryDto> update(@PathVariable String categoryName,  @RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
+        return new ResponseEntity<>(sampleDataCategoryService.updateSampleDataCategory(categoryName, sampleDataCategoryDto), HttpStatus.OK);
     }
 
     @PutMapping("{categoryName}/rollback-to-previous-version")
-    public SampleDataCategoryDto rollbackToPreviousVersion(@PathVariable String categoryName) {
-        return sampleDataCategoryService.rollbackToPreviousVersion(categoryName);
+    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable String categoryName) {
+        return new ResponseEntity<>(sampleDataCategoryService.rollbackToPreviousVersion(categoryName), HttpStatus.OK);
     }
 
     @PutMapping("{categoryName}/rollback-to-version/{version}")
-    public SampleDataCategoryDto rollbackToPreviousVersion(@PathVariable String categoryName, @PathVariable Long version ) {
-        return sampleDataCategoryService.rollbackToVersion(categoryName, version);
+    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable String categoryName, @PathVariable Long version ) {
+        return new ResponseEntity<>(sampleDataCategoryService.rollbackToVersion(categoryName, version), HttpStatus.OK);
     }
 
     @DeleteMapping("{categoryName}")
@@ -48,8 +48,8 @@ public class SampleDataCategoryController {
     }
 
     @GetMapping("{categoryName}")
-    public SampleDataCategoryDto get(@PathVariable String categoryName) {
-        return sampleDataCategoryService.getSampleDataCategory(categoryName);
+    public ResponseEntity<SampleDataCategoryDto> get(@PathVariable String categoryName) {
+        return new ResponseEntity<>(sampleDataCategoryService.getSampleDataCategory(categoryName), HttpStatus.OK);
     }
 
     @GetMapping()

@@ -1,20 +1,23 @@
 package com.thepaut.backend.repository.data;
 
 import com.thepaut.backend.model.data.SampleDataCategory;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 
 public interface SampleDataCategoryRepository extends JpaRepository<SampleDataCategory, Long> {
 
+
     /**
      * Rercheche toutes les catégorie par nom qui contiennent name et en ignorant la casse
      * @param name
      * @return
      */
-    List<SampleDataCategory> findByNameContainingIgnoreCase(String name);
+    List<SampleDataCategory> findByNameContainingIgnoreCase(String name, Sort sort);
 
     /**
      * Retourne la version de la catégorie avec le name categoryName si elle existe

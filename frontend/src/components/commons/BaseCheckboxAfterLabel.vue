@@ -6,6 +6,7 @@
     :checked="modelValue"
     @change="$emit('update:modelValue', $event.target.checked)"
     :id="uuid"
+    :disabled="disabled"
   />
 </template>
 
@@ -18,6 +19,10 @@ export default {
       default: "",
     },
     modelValue: {
+      type: Boolean,
+      default: false,
+    },
+    disabled: {
       type: Boolean,
       default: false,
     },

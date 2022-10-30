@@ -1,7 +1,9 @@
 <template>
   <nav>
     <RouterLink to="/">Home</RouterLink>
-    <RouterLink to="/Sample-data-categories">Sample data categories</RouterLink>
+    <RouterLink to="/Sample-data-categories/list"
+      >Sample data categories</RouterLink
+    >
     <RouterLink to="/about">About</RouterLink>
   </nav>
 </template>

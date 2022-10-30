@@ -15,36 +15,35 @@
       <button @click="askToDelete(category)">
         <span>Supprimer</span>
       </button>
-      <!--router-link
+      <router-link
         class="button link-button"
-        :to="{ name: 'category-detail', params: { id: category.id } }"
+        :to="{
+          name: 'SampleDataCategoryDetail',
+          params: { name: category.name, visuMode: true, isAddMode: false },
+        }"
       >
         <span>Sélectioner</span>
-      </router-link-->
+      </router-link>
     </footer>
   </fieldset>
 </template>
 
-<script>
-export default {
-  name: "SampleDataCategoryCard",
-  props: {
-    category: {
-      type: Object,
-      default: () => {
-        return {};
-      },
+<script setup>
+import BaseLabel from "../../components/commons/BaseLabel.vue";
+
+const props = defineProps({
+  category: {
+    type: Object,
+    default: () => {
+      return {};
     },
   },
-  setup(props, { emit }) {
-    const askToDelete = () => {
-      emit("askToDeleteCategoryEvent", props.category);
-    };
+});
 
-    return {
-      askToDelete,
-    };
-  },
+const emit = defineEmits(["askToDeleteCategoryEvent"]);
+
+const askToDelete = () => {
+  emit("askToDeleteCategoryEvent", props.category);
 };
 </script>
 

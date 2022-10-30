@@ -7,13 +7,14 @@ import com.thepaut.backend.model.data.SampleDataCategory;
 import com.thepaut.backend.repository.data.SampleDataCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,12 +30,40 @@ public class SampleDataCategoryService implements ISampleDataCategoryService {
     public List<SampleDataCategoryDto> getSampleDataCategories(String categoryName) {
         List<SampleDataCategory> categories;
         if (StringUtils.hasText(categoryName)) {
-            categories = sampleDataCategoryRepository.findByNameContainingIgnoreCase(categoryName);
+            categories = sampleDataCategoryRepository.findByNameContainingIgnoreCase(categoryName, Sort
+                    .by(Sort.Direction.ASC, "name")
+                    .and(Sort.by(Sort.Direction.DESC, "version")));
         }
         else {
-            categories = sampleDataCategoryRepository.findAll();
+            categories = sampleDataCategoryRepository.findAll(Sort
+                    .by(Sort.Direction.ASC, "name")
+                    .and(Sort.by(Sort.Direction.DESC, "version")));
         }
+        categories = getOnlyLastVersion(categories);
         return categories.stream().map(SampleDataCategoryMapper.INSTANCE::convert).toList();
+    }
+
+    private List<SampleDataCategory> getOnlyLastVersion(List<SampleDataCategory> categories) {
+        List<SampleDataCategory> filteredCategories = new ArrayList<>();
+        boolean firstElement = true;
+        SampleDataCategory currentCategory = new SampleDataCategory();
+        for(SampleDataCategory category : categories) {
+            if (firstElement) {
+                firstElement = false;
+                filteredCategories.add(category);
+                currentCategory = category;
+            }
+            else {
+                if (category.getName().equals(currentCategory.getName())) {
+                    currentCategory.addVersion(category);
+                }
+                else {
+                    filteredCategories.add(category);
+                    currentCategory = category;
+                }
+            }
+        }
+        return filteredCategories;
     }
 
     @Override
@@ -82,6 +111,7 @@ public class SampleDataCategoryService implements ISampleDataCategoryService {
     }
 
     @Override
+    @Transactional
     public boolean deleteSampleDataCategoryByName(String categoryName) {
         return sampleDataCategoryRepository.deleteByName(categoryName) > 0;
     }

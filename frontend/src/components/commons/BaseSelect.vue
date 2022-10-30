@@ -1,6 +1,6 @@
 <template>
   <label :for="uuid" v-if="label">{{ label }}</label>
-  <select v-bind="$attrs" v-model="localState" :id="uuid">
+  <select v-bind="$attrs" v-model="localState" :id="uuid" :disabled="disabled">
     <option v-for="option in options" :key="option">
       {{ option }}
     </option>
@@ -27,6 +27,10 @@ export default {
     value: {
       type: [String, Number],
       required: true,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

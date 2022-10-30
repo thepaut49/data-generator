@@ -10,7 +10,14 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: "/Sample-data-categories",
+      path: "/Sample-data-categories/:name?",
+      name: "SampleDataCategoryDetail",
+      component: () =>
+        import("../views/SampleDataCategory/SampleDataCategoryDetail.vue"),
+      props: true,
+    },
+    {
+      path: "/Sample-data-categories/list",
       name: "SampleDataCategories",
       component: () =>
         import("../views/SampleDataCategory/SampleDataCategories.vue"),

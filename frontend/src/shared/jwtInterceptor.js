@@ -22,7 +22,7 @@ jwtInterceptor.interceptors.response.use(
   async (error) => {
     if (error.response.status === 401) {
       const userStore = useUserStore();
-      if (userStore.isRefreshTokenAlive()) {
+      if (userStore.isRefreshTokenAlive) {
         userStore.refreshToken;
         error.config.headers["Authorization"] = `bearer ${userStore.getToken}`;
       } else {

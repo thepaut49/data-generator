@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import jwtInterceptor from "../shared/jwtInterceptor";
 import { VITE_APP_API_URL } from "./helper";
-import { parseItem } from "../shared/data.service";
+import { parseItem, parseDeleteResponse } from "../shared/data.service";
 
 const newSampleDataCategory = {
   id: undefined,
@@ -40,16 +40,16 @@ export const useSampleDataCategoryStore = defineStore(
       deleteSampleDataCategoryAction(sampleDataCategory) {
         return jwtInterceptor
           .delete(
-            `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`
+            `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.name}`
           )
           .then((response) => {
-            parseItem(response, 200);
+            parseDeleteResponse(response, 200);
             this.sampleDataCategories = [
               ...this.sampleDataCategories.filter(
-                (p) => p.id !== sampleDataCategory.id
+                (p) => p.name !== sampleDataCategory.name
               ),
             ];
-            this.selectedSampleDataCategory = newSampleDataCategory;
+            this.selectedSampleDataCategory = { ...newSampleDataCategory };
           })
           .catch((error) => console.error(error));
       },
@@ -62,7 +62,7 @@ export const useSampleDataCategoryStore = defineStore(
           .get(url)
           .then((response) => {
             this.sampleDataCategories = response.data.items;
-            this.selectedSampleDataCategory = newSampleDataCategory;
+            this.selectedSampleDataCategory = { ...newSampleDataCategory };
           })
           .catch((error) => {
             console.log(error);
@@ -85,20 +85,21 @@ export const useSampleDataCategoryStore = defineStore(
               updatedSampleDataCategory
             );
             this.sampleDataCategories = [...this.sampleDataCategories];
-            this.selectedSampleDataCategory = newSampleDataCategory;
+            this.selectedSampleDataCategory = { ...newSampleDataCategory };
           })
           .catch((error) => console.error(error));
       },
-      getSampleDataCategoryAction(id) {
-        if (id) {
+      getSampleDataCategoryAction(name) {
+        if (name) {
           const existingSampleDataCategory = this.sampleDataCategories.find(
-            (sampleDataCategory) => sampleDataCategory.id === id
+            (sampleDataCategory) => sampleDataCategory.name === name
           );
           if (existingSampleDataCategory) {
             this.selectedSampleDataCategory = existingSampleDataCategory;
+            return Promise.resolve();
           } else {
             return jwtInterceptor
-              .get(`${VITE_APP_API_URL}/api/sample-data-categories/${id}`)
+              .get(`${VITE_APP_API_URL}/api/sample-data-categories/${name}`)
               .then((response) => {
                 const sampleDataCategory = parseItem(response, 200);
                 this.selectedSampleDataCategory = sampleDataCategory;
@@ -108,7 +109,7 @@ export const useSampleDataCategoryStore = defineStore(
         }
       },
       createNewSampleDataCategoryAction() {
-        this.selectedSampleDataCategory = newSampleDataCategory;
+        this.selectedSampleDataCategory = { ...newSampleDataCategory };
       },
     },
   }

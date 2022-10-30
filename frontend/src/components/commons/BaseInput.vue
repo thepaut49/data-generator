@@ -8,6 +8,7 @@
     :id="uuid"
     :aria-describedby="error ? `${uuid}-error` : null"
     :aria-invalid="error ? true : null"
+    :disabled="disabled"
   />
   <p
     v-if="error && error.length > 0"
@@ -34,6 +35,10 @@ export default {
     error: {
       type: String,
       default: "",
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   setup() {
