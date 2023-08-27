@@ -8,11 +8,12 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSync, faPlus, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useUserStore } from "./stores/UserStore";
+import { markRaw } from "vue";
 
 library.add(faSync, faPlus, faEdit);
 
 let initOptions = {
-  url: "http://31.187.76.109:8080/auth",
+  url: "http://127.0.0.1:8080/",
   realm: "myrealm",
   clientId: "frontend",
   onLoad: "login-required",
@@ -33,6 +34,9 @@ keycloak
       window.location.reload();
     } else {
       const pinia = createPinia();
+      pinia.use(({ store }) => {
+        store.router = markRaw(router);
+      });
       const app = createApp(App);
       app.use(pinia);
       app.use(router);

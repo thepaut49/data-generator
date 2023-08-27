@@ -18,8 +18,8 @@
       <router-link
         class="button link-button"
         :to="{
-          name: 'SampleDataCategoryDetail',
-          params: { name: category.name, visuMode: true, isAddMode: false },
+          name: 'SampleDataCategoryLayout',
+          params: { categoryName: category.name },
         }"
       >
         <span>Sélectioner</span>

@@ -4,6 +4,7 @@
     <RouterLink to="/Sample-data-categories/list"
       >Sample data categories</RouterLink
     >
+    <RouterLink to="/Sample-datas/list">Sample datas</RouterLink>
     <RouterLink to="/about">About</RouterLink>
   </nav>
 </template>

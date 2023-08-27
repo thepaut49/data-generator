@@ -4,7 +4,7 @@
       <h2>Sample data categories</h2>
       <router-link
         class="button addButton"
-        :to="{ name: 'SampleDataCategoryDetail' }"
+        :to="{ name: 'SampleDataCategoryEdit' }"
       >
         <font-awesome-icon icon="plus" />
       </router-link>
@@ -32,7 +32,7 @@
         @askToDeleteCategoryEvent="askToDelete(category)"
       />
     </main>
-    <p v-else>Récupération des entreprises en cours, veuillez patienter</p>
+    <p v-else>Récupération des catégories en cours, veuillez patienter</p>
     <ModalWindow
       :message="modalMessage"
       :isOpen="showModal"

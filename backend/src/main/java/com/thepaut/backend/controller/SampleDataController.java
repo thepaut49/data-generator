@@ -42,7 +42,7 @@ public class SampleDataController {
     @DeleteMapping("{key}")
     public ResponseEntity<String> delete(@PathVariable String categoryName, @PathVariable String key) {
         sampleDataService.deleteSampleDataByCategoryNameAndKey(categoryName, key);
-        return new ResponseEntity<>("Donnée supprimée !", HttpStatus.OK);
+        return new ResponseEntity<>("Donnée " + key +  " supprimée !", HttpStatus.OK);
     }
 
     @GetMapping("{key}")
@@ -51,7 +51,7 @@ public class SampleDataController {
     }
 
     @GetMapping()
-    public ListResponse<SampleDataDto> findSampleDatas(@PathVariable String categoryName, @RequestParam(required = false) String key, @RequestParam(required = false) String value,  @RequestParam(required = false) boolean isLobValue ) {
-        return new ListResponse<>(sampleDataService.getSampleDatas(categoryName, key, value, isLobValue));
+    public ListResponse<SampleDataDto> findSampleDatas(@PathVariable String categoryName, @RequestParam(required = false) String key, @RequestParam(required = false) String value,  @RequestParam(required = false) boolean isBlobValue ) {
+        return new ListResponse<>(sampleDataService.getSampleDatas(categoryName, key, value, isBlobValue));
     }
 }

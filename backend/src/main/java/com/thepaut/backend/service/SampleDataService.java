@@ -7,16 +7,19 @@ import com.thepaut.backend.model.data.SampleDataCategory;
 import com.thepaut.backend.repository.data.SampleDataCategoryRepository;
 import com.thepaut.backend.repository.data.SampleDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SampleDataService implements ISampleDataService{
 
+    public static final String CATEGORIE_INCONNU = "Catégorie inconnu : ";
     @Autowired
     SampleDataRepository sampleDataRepository;
 
@@ -27,52 +30,77 @@ public class SampleDataService implements ISampleDataService{
     @Override
     public List<SampleDataDto> getSampleDatas(String categoryName, String key, String value , boolean isBlobValue) {
         SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
 
         List<SampleData> results;
+        Sort sort = Sort.by(Sort.Direction.ASC, "key").and(Sort.by(Sort.Direction.DESC, "version"));
         // catagory + key + value
         if (sampleDataCategory != null && StringUtils.hasText(key) && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(sampleDataCategory, key, value);
+            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(sampleDataCategory, key, value, sort);
         } // catagory + key + blobvalue
         else if (sampleDataCategory != null && StringUtils.hasText(key) && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndValueContainingIgnoreCase(sampleDataCategory, key, value);
+            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndValueContainingIgnoreCase(sampleDataCategory, key, value, sort);
         } // catagory + value
         else if (sampleDataCategory != null && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndValueContainingIgnoreCase(sampleDataCategory, value);
+            results = sampleDataRepository.findByCategoryAndValueContainingIgnoreCase(sampleDataCategory, value, sort);
         } // catagory + blobvalue
         else if (sampleDataCategory != null && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndBlobValueContainingIgnoreCase(sampleDataCategory, value);
+            results = sampleDataRepository.findByCategoryAndBlobValueContainingIgnoreCase(sampleDataCategory, value, sort);
         } // key + value
         else if (StringUtils.hasText(key) && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndValueContainingIgnoreCase(key, value);
+            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndValueContainingIgnoreCase(key, value, sort);
         } // key + blobvalue
         else if (StringUtils.hasText(key) &&sampleDataCategory != null && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(key, value);
+            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(key, value, sort);
         } // category + key
         else if (sampleDataCategory != null && StringUtils.hasText(key)) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCase(sampleDataCategory, key);
+            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCase(sampleDataCategory, key, sort);
         } // category
         else if (sampleDataCategory != null) {
-            results = sampleDataRepository.findByCategory(sampleDataCategory);
+            results = sampleDataRepository.findByCategory(sampleDataCategory, sort);
         } // key
         else if (StringUtils.hasText(key)) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCase(key);
+            results = sampleDataRepository.findByKeyContainingIgnoreCase(key, sort);
         } // value
         else if (StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByValueContainingIgnoreCase(value);
+            results = sampleDataRepository.findByValueContainingIgnoreCase(value, sort);
         } // blobvalue
         else if (StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByBlobValueContainingIgnoreCase(value);
+            results = sampleDataRepository.findByBlobValueContainingIgnoreCase(value, sort);
         } else {
-            results = sampleDataRepository.findAll();
+            results = sampleDataRepository.findAll(sort);
         }
+        results = getOnlyLastVersion(results);
         return results.stream().map(SampleDataMapper.INSTANCE::convert).toList();
+    }
+
+    private List<SampleData> getOnlyLastVersion(List<SampleData> datas) {
+        List<SampleData> filteredDatas = new ArrayList<>();
+        boolean firstElement = true;
+        SampleData currentData = new SampleData();
+        for(SampleData data : datas) {
+            if (firstElement) {
+                firstElement = false;
+                filteredDatas.add(data);
+                currentData = data;
+            }
+            else {
+                if (data.getKey().equals(currentData.getKey())) {
+                    currentData.addVersion(data);
+                }
+                else {
+                    filteredDatas.add(data);
+                    currentData = data;
+                }
+            }
+        }
+        return filteredDatas;
     }
 
     @Override
     public SampleDataDto getSampleData(String categoryName, String key) {
         SampleData sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key)
-                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
         sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyOrderByVersionDesc(categoryName, key));
         return SampleDataMapper.INSTANCE.convert(sampleData);
     }
@@ -97,7 +125,7 @@ public class SampleDataService implements ISampleDataService{
     @Override
     public SampleDataDto createSampleData(String categoryName, SampleDataDto sampleDataDto) {
         SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException("Catégorie inconnu : " + categoryName ));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
         SampleData sampleData = SampleDataMapper.INSTANCE.convert(sampleDataDto);
         sampleData.setCategory(sampleDataCategory);
         sampleData.setModifiedBy(UserService.getUserId());

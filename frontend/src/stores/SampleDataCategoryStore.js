@@ -20,9 +20,7 @@ export const useSampleDataCategoryStore = defineStore(
         selectedSampleDataCategory: {},
       };
     },
-    getters: {
-      doubleCount: (state) => state.counter * 2,
-    },
+    getters: {},
     actions: {
       addSampleDataCategoryAction(sampleDataCategory) {
         return jwtInterceptor
@@ -71,7 +69,7 @@ export const useSampleDataCategoryStore = defineStore(
       updateSampleDataCategoryAction(sampleDataCategory) {
         return jwtInterceptor
           .put(
-            `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`,
+            `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.name}`,
             sampleDataCategory
           )
           .then((response) => {
@@ -89,22 +87,24 @@ export const useSampleDataCategoryStore = defineStore(
           })
           .catch((error) => console.error(error));
       },
-      getSampleDataCategoryAction(name) {
+      async getSampleDataCategoryAction(name) {
         if (name) {
           const existingSampleDataCategory = this.sampleDataCategories.find(
             (sampleDataCategory) => sampleDataCategory.name === name
           );
           if (existingSampleDataCategory) {
             this.selectedSampleDataCategory = existingSampleDataCategory;
-            return Promise.resolve();
+            return existingSampleDataCategory;
           } else {
-            return jwtInterceptor
-              .get(`${VITE_APP_API_URL}/api/sample-data-categories/${name}`)
-              .then((response) => {
-                const sampleDataCategory = parseItem(response, 200);
-                this.selectedSampleDataCategory = sampleDataCategory;
-              })
-              .catch((error) => console.error(error));
+            try {
+              const response = await jwtInterceptor.get(
+                `${VITE_APP_API_URL}/api/sample-data-categories/${name}`
+              );
+              return parseItem(response, 200);
+            } catch (error) {
+              // Handle errors
+              console.error(error);
+            }
           }
         }
       },
