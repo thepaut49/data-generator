@@ -19,6 +19,7 @@ body,
   --second-text-color: #184a73;
   --third-text-color: black;
   --fourth-text-color: red;
+  --min-margin: 0.5em;
 }
 
 /** Card **/
@@ -34,6 +35,13 @@ body,
 .card:hover {
   transform: scale(1.01);
   box-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.2), 0 1px 15px 0 rgba(0, 0, 0, 0.19);
+}
+
+.card-footer-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
 }
 
 /** button in content **/

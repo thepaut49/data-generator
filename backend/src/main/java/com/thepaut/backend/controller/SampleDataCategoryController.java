@@ -3,8 +3,8 @@ package com.thepaut.backend.controller;
 import com.thepaut.backend.dto.SampleDataCategoryCreationDto;
 import com.thepaut.backend.dto.SampleDataCategoryDto;
 import com.thepaut.backend.dto.SampleDataDto;
-import com.thepaut.backend.service.ISampleDataCategoryService;
 import com.thepaut.backend.service.ISampleDataService;
+import com.thepaut.backend.service.SampleDataCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,51 +20,56 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SampleDataCategoryController {
 
-    @Autowired
-    private ISampleDataCategoryService sampleDataCategoryService;
+    private final SampleDataCategoryService sampleDataCategoryService;
 
-    @Autowired
-    private ISampleDataService sampleDataService;
+    private final ISampleDataService sampleDataService;
+
 
     @PostMapping
     public ResponseEntity<SampleDataCategoryDto> create(@RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
-        return new ResponseEntity<>(sampleDataCategoryService.createSampleDataCategory(sampleDataCategoryDto), HttpStatus.CREATED);
+        SampleDataCategoryDto createdDto = (SampleDataCategoryDto) sampleDataCategoryService.createEntity(sampleDataCategoryDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDto);
     }
 
-    @PutMapping("{categoryName}")
-    public ResponseEntity<SampleDataCategoryDto> update(@PathVariable String categoryName,  @RequestBody @Valid SampleDataCategoryCreationDto sampleDataCategoryDto) {
-        return new ResponseEntity<>(sampleDataCategoryService.updateSampleDataCategory(categoryName, sampleDataCategoryDto), HttpStatus.OK);
+    @PutMapping("{categoryId}")
+    public ResponseEntity<SampleDataCategoryDto> update(@PathVariable Long categoryId,  @RequestBody @Valid SampleDataCategoryDto sampleDataCategoryDto) {
+        SampleDataCategoryDto updatedDto = (SampleDataCategoryDto) sampleDataCategoryService.updateEntity(categoryId, sampleDataCategoryDto);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedDto);
     }
 
-    @PutMapping("{categoryName}/rollback-to-previous-version")
-    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable String categoryName) {
-        return new ResponseEntity<>(sampleDataCategoryService.rollbackToPreviousVersion(categoryName), HttpStatus.OK);
+    @PutMapping("{categoryId}/rollback-to-previous-version")
+    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable Long categoryId) {
+        SampleDataCategoryDto updatedDto = (SampleDataCategoryDto) sampleDataCategoryService.rollbackToPreviousVersion(categoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedDto);
     }
 
-    @PutMapping("{categoryName}/rollback-to-version/{version}")
-    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable String categoryName, @PathVariable Long version ) {
-        return new ResponseEntity<>(sampleDataCategoryService.rollbackToVersion(categoryName, version), HttpStatus.OK);
+    @PutMapping("{categoryId}/rollback-to-version/{version}")
+    public ResponseEntity<SampleDataCategoryDto> rollbackToPreviousVersion(@PathVariable Long categoryId, @PathVariable Long version ) {
+        SampleDataCategoryDto updatedDto = (SampleDataCategoryDto) sampleDataCategoryService.rollbackToVersion(categoryId, version);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedDto);
     }
 
-    @DeleteMapping("{categoryName}")
-    public ResponseEntity<String> delete(@PathVariable String categoryName) {
-        sampleDataCategoryService.deleteSampleDataCategoryByName(categoryName);
-        return new ResponseEntity<>("Catégorie " + categoryName + " supprimée !", HttpStatus.OK);
+    @DeleteMapping("{categoryId}")
+    public ResponseEntity<String> delete(@PathVariable Long categoryId) {
+        sampleDataCategoryService.deleteById(categoryId);
+        return new ResponseEntity<>("Catégorie " + categoryId + " supprimée !", HttpStatus.OK);
     }
 
-    @GetMapping("{categoryName}")
-    public ResponseEntity<SampleDataCategoryDto> get(@PathVariable String categoryName) {
-        return new ResponseEntity<>(sampleDataCategoryService.getSampleDataCategory(categoryName), HttpStatus.OK);
+    @GetMapping("{categoryId}")
+    public ResponseEntity<SampleDataCategoryDto> get(@PathVariable Long categoryId) {
+        SampleDataCategoryDto updatedDto = (SampleDataCategoryDto) sampleDataCategoryService.getEntityById(categoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedDto);
     }
 
     @GetMapping()
     public  ResponseEntity<List<SampleDataCategoryDto>> findSampleDataCategories(@RequestParam(required = false) String categoryName) {
-        return new ResponseEntity<List<SampleDataCategoryDto>>(sampleDataCategoryService.getSampleDataCategories(categoryName), HttpStatus.OK);
+        List<SampleDataCategoryDto> sampleDataCategoryDtos = sampleDataCategoryService.getSampleDataCategories(categoryName);
+        return ResponseEntity.status(HttpStatus.OK).body(sampleDataCategoryDtos);
     }
 
-    @GetMapping("/search-sample-datas?categoryName={categoryName}&key={key}&value={value}&isBlobValue={isBlobValue}")
-    public  ResponseEntity<List<SampleDataDto>> findSampleDatas(@RequestParam String categoryName, @RequestParam(required = false) String key, @RequestParam(required = false) String value, @RequestParam(required = false) boolean isBlobValue ) {
-        return new ResponseEntity<List<SampleDataDto>>(sampleDataService.getSampleDatas(categoryName, key, value, isBlobValue), HttpStatus.OK);
+    @GetMapping("/search-sample-datas?categoryId={categoryId}&key={key}&value={value}&isBlobValue={isBlobValue}")
+    public  ResponseEntity<List<SampleDataDto>> findSampleDatas(@RequestParam Long categoryId, @RequestParam(required = false) String key, @RequestParam(required = false) String value, @RequestParam(required = false) boolean isBlobValue ) {
+        return new ResponseEntity<>(sampleDataService.getSampleDatas(categoryId, key, value, isBlobValue), HttpStatus.OK);
 
     }
 }

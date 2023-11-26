@@ -5,24 +5,15 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @ToString
 @Entity
 @Table(name = "field", uniqueConstraints = {
-        @UniqueConstraint(name = "uc_field_version_api_version", columnNames = {"version", "api_version", "field_name"})
+       // @UniqueConstraint(name = "uc_field_version_api_version", columnNames = {"version", "api_version", "field_name"})
 })
-public class Field {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "version")
-    private Long version;
+public class Field extends GenericEntity{
 
     @Column(name = "api_version")
     private String apiVersion;
@@ -43,11 +34,5 @@ public class Field {
 
     @Column(name = "field_max_size")
     private Integer maxSize;
-
-    @Column(name = "modified_by")
-    private String modifiedBy;
-
-    @Column(name = "modified_at")
-    private LocalDateTime modifiedAt;
 
 }

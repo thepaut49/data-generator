@@ -1,16 +1,33 @@
 <template>
-  <aside class="sidebar">
-    <button class="sidebar-button">
-      <span>Détails</span>
-    </button>
-    <button class="sidebar-button">
-      <span>Modifier</span>
-    </button>
-    <button class="sidebar-button">
-      <span>Historique</span>
+  <aside :class="cssClass">
+    <button
+      class="sidebar-button"
+      v-for="(button, index) in buttons"
+      :key="index"
+      @click="goToRoute(button.route)"
+    >
+      <span>{{ button.text }}</span>
     </button>
   </aside>
 </template>
+
+<script setup lang="ts">
+const router = useRouter();
+defineProps({
+  buttons: {
+    type: Array<NavigationButton>,
+    required: true,
+  },
+  cssClass: {
+    type: String,
+    required: true,
+  },
+});
+
+function goToRoute(route: string) {
+  router.push(route);
+}
+</script>
 
 <style scoped>
 .sidebar-button {

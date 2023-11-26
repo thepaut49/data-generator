@@ -1,55 +1,66 @@
 <template>
-  <label :for="uuid" v-if="label">{{ label }}</label>
-  <select v-bind="$attrs" v-model="localState" :id="uuid" :disabled="disabled">
-    <option v-for="option in options" :key="option">
-      {{ option }}
-    </option>
-  </select>
+  <section class="">
+    <label :for="uuid" v-if="label">{{ label }}</label>
+    <select
+      v-bind="{
+        ...$attrs,
+        onChange: ($event) => {
+          $emit('update:modelValue', $event.target.value);
+        },
+      }"
+      :value="modelValue"
+      :id="uuid"
+      :disabled="disabled"
+      :multiple="multiple"
+    >
+      <option
+        v-for="option in options"
+        :key="option.label"
+        :value="option.value"
+        :selected="option === modelValue"
+      >
+        {{ option.label }}
+      </option>
+    </select>
+  </section>
 </template>
 
-<script>
+<script setup>
+import { defineProps, watch } from "vue";
 import UniqueID from "../../features/UniqueID";
 
-export default {
-  props: {
-    label: {
-      type: String,
-      default: "",
-    },
-    options: {
-      type: Array,
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    value: {
-      type: [String, Number],
-      required: true,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  label: String,
+  multiple: {
+    type: Boolean,
+    default: false,
   },
-  data() {
-    const uuid = UniqueID().getID();
-    return {
-      uuid,
-    };
+  options: {
+    type: Array,
+    required: true,
   },
-  computed: {
-    localState: {
-      get() {
-        return this.value;
-      },
-      set(localState) {
-        this.$emit("input", localState);
-      },
-    },
+  modelValue: [Object | null],
+  disabled: {
+    type: Boolean,
+    default: false,
   },
-};
+  display: {
+    type: String,
+    default: "vertical",
+  },
+});
+
+const uuid = UniqueID().getID();
+
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    // Emit an 'input' event with the selected value
+    if (newValue !== props.modelValue) {
+      emit("update:modelValue", newValue);
+    }
+  }
+);
 </script>
 
 <style scoped>

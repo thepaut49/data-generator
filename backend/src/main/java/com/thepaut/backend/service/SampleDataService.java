@@ -28,9 +28,9 @@ public class SampleDataService implements ISampleDataService{
 
 
     @Override
-    public List<SampleDataDto> getSampleDatas(String categoryName, String key, String value , boolean isBlobValue) {
-        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
+    public List<SampleDataDto> getSampleDatas(Long categoryId, String key, String value , boolean isBlobValue) {
+        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
 
         List<SampleData> results;
         Sort sort = Sort.by(Sort.Direction.ASC, "key").and(Sort.by(Sort.Direction.DESC, "version"));
@@ -71,7 +71,7 @@ public class SampleDataService implements ISampleDataService{
             results = sampleDataRepository.findAll(sort);
         }
         results = getOnlyLastVersion(results);
-        return results.stream().map(SampleDataMapper.INSTANCE::convert).toList();
+        return results.stream().map(SampleDataMapper.INSTANCE::convertEntityToUpdateDto).toList();
     }
 
     private List<SampleData> getOnlyLastVersion(List<SampleData> datas) {
@@ -86,7 +86,7 @@ public class SampleDataService implements ISampleDataService{
             }
             else {
                 if (data.getKey().equals(currentData.getKey())) {
-                    currentData.addVersion(data);
+                   // currentData.addVersion(data);
                 }
                 else {
                     filteredDatas.add(data);
@@ -98,58 +98,58 @@ public class SampleDataService implements ISampleDataService{
     }
 
     @Override
-    public SampleDataDto getSampleData(String categoryName, String key) {
-        SampleData sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
-        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyOrderByVersionDesc(categoryName, key));
-        return SampleDataMapper.INSTANCE.convert(sampleData);
+    public SampleDataDto getSampleData(Long categoryId, String key) {
+        SampleData sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key)
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
+       // sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyOrderByVersionDesc(categoryId, key));
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
     }
 
     @Override
-    public SampleDataDto rollbackToPreviousVersion(String categoryName, String key) {
-        sampleDataRepository.deleteFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key);
-        SampleData sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key).orElseThrow( () -> new ResourceNotFoundException("Catégorie " + categoryName + " clé : " + key + "  inconnu !" ));
+    public SampleDataDto rollbackToPreviousVersion(Long categoryId, String key) {
+        sampleDataRepository.deleteFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key);
+        SampleData sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key).orElseThrow( () -> new ResourceNotFoundException("Catégorie " + categoryId + " clé : " + key + "  inconnu !" ));
         Long previousVersion = sampleData.getVersion();
-        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryName, key, previousVersion));
-        return SampleDataMapper.INSTANCE.convert(sampleData);
+      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryId, key, previousVersion));
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
     }
 
     @Override
-    public SampleDataDto rollbackToVersion(String categoryName, String key, Long version) {
-        sampleDataRepository.deleteByCategoryNameAndKeyAndVersionGreaterThan(categoryName, key, version);
-        SampleData sampleData = sampleDataRepository.findByCategoryNameAndKeyAndVersion(categoryName, key, version).orElseThrow( () -> new ResourceNotFoundException("Clé version " + version + " introuvable !" ));
-        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryName, key, version));
-        return SampleDataMapper.INSTANCE.convert(sampleData);
+    public SampleDataDto rollbackToVersion(Long categoryId, String key, Long version) {
+        sampleDataRepository.deleteByCategoryIdAndKeyAndVersionGreaterThan(categoryId, key, version);
+        SampleData sampleData = sampleDataRepository.findByCategoryIdAndKeyAndVersion(categoryId, key, version).orElseThrow( () -> new ResourceNotFoundException("Clé version " + version + " introuvable !" ));
+      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryId, key, version));
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
     }
 
     @Override
-    public SampleDataDto createSampleData(String categoryName, SampleDataDto sampleDataDto) {
-        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByNameOrderByVersionDesc(categoryName)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryName ));
-        SampleData sampleData = SampleDataMapper.INSTANCE.convert(sampleDataDto);
+    public SampleDataDto createSampleData(Long categoryId, SampleDataDto sampleDataDto) {
+        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByIdOrderByVersionDesc(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
+        SampleData sampleData = SampleDataMapper.INSTANCE.convertUpdateDtoToEntity(sampleDataDto);
         sampleData.setCategory(sampleDataCategory);
         sampleData.setModifiedBy(UserService.getUserId());
-        sampleData.addVersion(sampleData);
-        return SampleDataMapper.INSTANCE.convert(sampleDataRepository.save(sampleData));
+     //   sampleData.addVersion(sampleData);
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleDataRepository.save(sampleData));
     }
 
     @Override
-    public SampleDataDto updateSampleData(String categoryName, String key, SampleDataDto sampleDataDto) {
-        SampleData sampleData = SampleDataMapper.INSTANCE.convert(sampleDataDto);
-        sampleData.setVersion(newVersion(categoryName, key));
+    public SampleDataDto updateSampleData(Long categoryId, String key, SampleDataDto sampleDataDto) {
+        SampleData sampleData = SampleDataMapper.INSTANCE.convertUpdateDtoToEntity(sampleDataDto);
+        sampleData.setVersion(newVersion(categoryId, key));
         sampleData.setModifiedBy(UserService.getUserId());
         sampleData = sampleDataRepository.save(sampleData);
-        sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryNameAndKeyOrderByVersionDesc(categoryName, key));
-        return SampleDataMapper.INSTANCE.convert(sampleData);
+      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyOrderByVersionDesc(categoryId, key));
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
     }
 
     @Override
-    public boolean deleteSampleDataByCategoryNameAndKey(String categoryName, String key) {
-        return sampleDataRepository.deleteByCategoryNameAndKey(categoryName, key) > 0;
+    public boolean deleteSampleDataByCategoryIdAndKey(Long categoryId, String key) {
+        return sampleDataRepository.deleteByCategoryIdAndKey(categoryId, key) > 0;
     }
 
-    private Long newVersion(String categoryName, String key) {
-        Optional<SampleData> sampleData = sampleDataRepository.findFirstByCategoryNameAndKeyOrderByVersionDesc(categoryName, key);
+    private Long newVersion(Long categoryId, String key) {
+        Optional<SampleData> sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key);
         if (sampleData.isPresent()) {
             return sampleData.get().getVersion() + 1;
         }

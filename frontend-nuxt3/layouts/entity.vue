@@ -1,37 +1,43 @@
 <template>
   <section class="app-section-entity">
     <Navbar />
-    <EntitySideBar />
     <slot />
   </section>
 </template>
 
-<style scoped>
+<style>
 .app-section-entity {
   width: 100%;
   height: 100%;
-  display: grid;
-  align-content: stretch;
-  grid-template-rows: min-content 1fr;
-  grid-template-columns: 1fr 1fr 10fr;
-  grid-template-areas:
-    "navbar navbar navbar navbar navbar navbar navbar navbar navbar navbar navbar navbar"
-    "sidebar sidebar entity-page entity-page entity-page entity-page entity-page entity-page entity-page entity-page entity-page entity-page";
+  display: flex;
+  flex-direction: column;
 }
 
 nav {
-  grid-area: navbar;
+  width: 100%;
 }
-.sidebar {
+
+.entity-page {
+  background-color: blue;
+  display: flex;
+  flex-direction: row;
+}
+
+.entity-sidebar {
   padding: 0.5em;
-  grid-area: sidebar;
   background-color: var(--third-bg-color);
   color: var(--fourth-text-color);
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
-.entity-page {
-  grid-area: entity-page;
+.entity-content {
   padding: 0.5rem;
+  flex: 4;
+}
+
+.entity-title {
+  margin: auto;
+  font-size: x-large;
 }
 </style>

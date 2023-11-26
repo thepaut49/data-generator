@@ -44,25 +44,18 @@ public interface SampleDataRepository extends JpaRepository<SampleData, Long> {
     // blobValue
     List<SampleData> findByBlobValueContainingIgnoreCase(String blobValue, Sort sort);
 
-    Optional<SampleData> findByCategoryNameAndKeyAndVersion(String categoryName, String key, Long version);
+    Optional<SampleData> findByCategoryIdAndKeyAndVersion(Long categoryId, String key, Long version);
 
-    Optional<SampleData> findFirstByCategoryNameAndKeyOrderByVersionDesc(String categoryName, String key);
+    Optional<SampleData> findFirstByCategoryIdAndKeyOrderByVersionDesc(Long categoryId, String key);
 
-    List<SampleData> findByCategoryNameAndKeyOrderByVersionDesc(String categoryName, String key);
+    List<SampleData> findByCategoryIdAndKeyOrderByVersionDesc(Long categoryId, String key);
 
-    List<SampleData> findByCategoryNameAndKeyAndVersionLessThanEqualOrderByVersionDesc(String categoryName, String key, Long version);
+    List<SampleData> findByCategoryIdAndKeyAndVersionLessThanEqualOrderByVersionDesc(Long categoryId, String key, Long version);
 
+    Long deleteByCategoryIdAndKey(Long categoryId, String key);
 
-    //mm
+    Long deleteByCategoryIdAndKeyAndVersionGreaterThan(Long categoryId, String key, Long version);
 
-
-
-    Long deleteByCategoryNameAndKey(String categoryName, String key);
-
-    Long deleteByCategoryNameAndKeyAndVersionGreaterThan(String categoryName,String key, Long version);
-
-    Long deleteFirstByCategoryNameAndKeyOrderByVersionDesc(String categoryName, String key);
-
-
+    Long deleteFirstByCategoryIdAndKeyOrderByVersionDesc(Long categoryId, String key);
 
 }

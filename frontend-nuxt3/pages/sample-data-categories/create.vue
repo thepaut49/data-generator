@@ -1,20 +1,15 @@
 <template>
-  <section class="entity-page">
-    <h1 class="title">Création d'une nouvelle Catégorie</h1>
-
-    <div class="field-label">
-      <BaseInput v-model="category.name" label="Nom de la catégorie : " />
-    </div>
-
-    <footer>
-      <button @click="saveNewCategorie">Créer</button>
-      <button @click="retour">Retour</button>
-    </footer>
-  </section>
+  <SampleDataCategoryUpdateCard
+    title="Création d'une nouvelle catégorie"
+    :category="category"
+    :saveCategory="saveNewCategorie"
+    :cancel="cancel"
+    cssClass="page"
+  ></SampleDataCategoryUpdateCard>
 </template>
 <script setup>
-import BaseInput from "../../components/commons/BaseInput.vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
+import SampleDataCategoryUpdateCard from "~~/components/SampleDataCategory/SampleDataCategoryUpdateCard.vue";
 const store = useSampleDataCategory();
 const router = useRouter();
 
@@ -28,15 +23,27 @@ function saveNewCategorie() {
   router.push("/sample-data-categories");
 }
 
-function retour() {
+function cancel() {
   store.getSampleDataCategoriesAction(null);
   router.push("/sample-data-categories");
 }
 </script>
-<script>
-definePageMeta({
-  layout: "entity",
-});
-</script>
 
-<style scoped></style>
+<style scoped>
+.entity-page {
+  background-color: blue;
+  display: flex;
+  flex-direction: row;
+}
+
+.entity-sidebar {
+  padding: 0.5em;
+  background-color: var(--third-bg-color);
+  color: var(--fourth-text-color);
+  display: flex;
+  flex-direction: column;
+}
+.entity-content {
+  padding: 0.5rem;
+}
+</style>

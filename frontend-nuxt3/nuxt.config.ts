@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   auth: {
     origin: "http://127.0.0.1:3000",
     enableGlobalAppMiddleware: true,
+    isEnabled: true,
   },
   css: [
     "~/assets/css/global.css",

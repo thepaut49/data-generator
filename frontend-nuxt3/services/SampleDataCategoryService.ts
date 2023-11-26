@@ -22,7 +22,7 @@ export default {
     return api.get<SampleDataCategory[]>(url);
   },
   getSampleDataCategory(
-    categoryName: string,
+    id: number,
     accessToken: string
   ): Promise<AxiosResponse<SampleDataCategory>> {
     api.interceptors.request.use((config) => {
@@ -30,7 +30,7 @@ export default {
       return config;
     });
 
-    let url = VITE_APP_API_URL + "/api/sample-data-categories/" + categoryName;
+    let url = VITE_APP_API_URL + "/api/sample-data-categories/" + id;
     return api.get<SampleDataCategory>(url);
   },
   addSampleDataCategory(
@@ -57,7 +57,7 @@ export default {
     });
 
     return api.delete(
-      `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.name}`
+      `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`
     );
   },
   updateSampleDataCategory(
@@ -69,7 +69,7 @@ export default {
       return config;
     });
     return api.put<SampleDataCategory>(
-      `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.name}`,
+      `${VITE_APP_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`,
       sampleDataCategory
     );
   },

@@ -11,8 +11,8 @@
         <BaseLabel :modelValue="category.modifiedBy" label="Modifié par : " />
       </div>
     </main>
-    <footer>
-      <button @click="askToDelete(category)">
+    <footer class="card-footer-buttons">
+      <button @click="askToDelete">
         <span>Supprimer</span>
       </button>
       <button @click="goToElementDetails">
@@ -22,14 +22,14 @@
   </section>
 </template>
 
-<script>
+<script lang="ts">
 // declare additional options
 export default {
   name: "SampleDataCategoryCard",
 };
 </script>
 
-<script setup>
+<script setup lang="ts">
 import BaseLabel from "../../components/commons/BaseLabel.vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
 
@@ -38,10 +38,8 @@ const store = useSampleDataCategory();
 
 const props = defineProps({
   category: {
-    type: Object,
-    default: () => {
-      return {};
-    },
+    type: Object as () => SampleDataCategory, // Type assertion
+    required: true,
   },
 });
 
@@ -53,7 +51,7 @@ const askToDelete = () => {
 
 const goToElementDetails = () => {
   const categoryName = props.category.name;
-  store.getSampleDataCategoryAction(categoryName);
+  store.getSampleDataCategoryAction(props.category.id);
   router.push("/sample-data-categories/" + categoryName);
 };
 </script>
@@ -68,12 +66,5 @@ const goToElementDetails = () => {
   text-align: left;
   display: flex;
   flex-direction: column;
-}
-
-.category-card footer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-around;
 }
 </style>

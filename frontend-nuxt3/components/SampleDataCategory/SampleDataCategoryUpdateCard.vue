@@ -1,51 +1,43 @@
 <template>
-  <section class="entity-page">
-    <h1 class="title">{{ title }}</h1>
+  <section :class="cssClass">
+    <h1 class="entity-title">{{ title }}</h1>
 
     <div class="field-label">
-      <BaseInput v-model="category.name" label="Nom de la catégorie : " />
+      <BaseInput v-model="category.name" label="Nom de la catégorie " />
     </div>
 
-    <footer>
-      <button @click="saveNewCategorie">Sauvegarder</button>
-      <button @click="retour">Retour</button>
+    <footer class="card-footer-buttons">
+      <button @click="saveCategory()">Sauvegarder</button>
+      <button @click="cancel()">Retour</button>
     </footer>
   </section>
 </template>
-<script setup>
+<script setup lang="ts">
 import BaseInput from "../commons/BaseInput.vue";
-import { useSampleDataCategory } from "../../store/SampleDataCategory";
-import SampleDataCategoryCardVue from "./SampleDataCategoryCard.vue";
+import { useTitle } from "@vueuse/core";
 
 const props = defineProps({
-  title: String,
-  saveCategory: Function,
-  cancel: Function,
-  category: SampleDataCategory,
+  title: {
+    type: String,
+    required: true,
+  },
+  saveCategory: {
+    type: Function,
+    required: true,
+  },
+  cancel: {
+    type: Function,
+    required: true,
+  },
+  category: {
+    type: Object as () => SampleDataCategory, // Type assertion
+    required: true,
+  },
+  cssClass: {
+    type: String,
+    required: true,
+  },
 });
 
-const store = useSampleDataCategory();
-const router = useRouter();
-
-const category = computed(() => {
-  return store.selectedSampleDataCategory;
-});
-
-function saveNewCategorie() {
-  store.addSampleDataCategoryAction(category.value);
-  store.getSampleDataCategoriesAction(null);
-  router.push("/sample-data-categories");
-}
-
-function retour() {
-  store.getSampleDataCategoriesAction(null);
-  router.push("/sample-data-categories");
-}
+useTitle(props.title);
 </script>
-<script>
-definePageMeta({
-  layout: "entity",
-});
-</script>
-
-<style scoped></style>

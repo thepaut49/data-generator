@@ -10,12 +10,14 @@
       </button>
     </header>
 
-    <div v-if="sampleDataCategories">
+    <div v-if="!loading">
       <SampleDataCategoryCard
         v-for="(sampleDataCategory, index) in sampleDataCategories"
         :key="index"
         :category="sampleDataCategory"
         :data-index="index"
+        class="sample-data-category-card"
+        @askToDeleteCategoryEvent="handleDeleteEvent(sampleDataCategory)"
       />
     </div>
   </section>
@@ -44,23 +46,17 @@ import { computed } from "vue";
 
 const router = useRouter();
 const store = useSampleDataCategory();
-let loading = ref(false);
+const loading = computed(() => store.loading);
 
 function getData() {
-  const now = new Date();
-  const oneHoursInMilliseconds = 3600000;
-  const numberOfMillisecondsFromLastLoading =
-    now.getTime() - store.lastLoadingDate.getTime();
-  if (true || numberOfMillisecondsFromLastLoading > oneHoursInMilliseconds) {
-    // load data
-    store.getSampleDataCategoriesAction(null).catch((e) => {
-      throw createError({
-        statusCode: 503,
-        statusMessage:
-          "Unable to fetch sampleDataCategorys at this time. Please try again.",
-      });
+  // load data
+  store.getSampleDataCategoriesAction(null).catch((e) => {
+    throw createError({
+      statusCode: 503,
+      statusMessage:
+        "Unable to fetch sampleDataCategorys at this time. Please try again.",
     });
-  }
+  });
 }
 
 getData();
@@ -76,4 +72,16 @@ function reloadCategories() {
   store.getSampleDataCategoriesAction(null);
   router.push("/sample-data-categories");
 }
+
+const handleDeleteEvent = (sampleDataCategory: SampleDataCategory) => {
+  store.deleteSampleDataCategoryAction(sampleDataCategory);
+  router.push("/sample-data-categories");
+};
 </script>
+<style scoped>
+/* Your other styles here */
+
+.sample-data-category-card {
+  margin-top: 0.5em; /* Adjust the margin value as needed */
+}
+</style>

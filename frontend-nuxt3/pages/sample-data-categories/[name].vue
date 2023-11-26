@@ -1,35 +1,26 @@
 <template>
-  <section class="entity-page" v-if="sampleDataCategory">
-    <h1 class="title">Catégorie : {{ sampleDataCategory.name }}</h1>
-
-    <div class="field-label">
-      <BaseLabel
-        :modelValue="sampleDataCategory.modifiedAt"
-        label="Modifié le : "
-      />
-    </div>
-    <div class="field-label">
-      <BaseLabel
-        :modelValue="sampleDataCategory.modifiedBy"
-        label="Modifié par : "
-      />
-    </div>
-    <div class="field-label">
-      <BaseLabel :modelValue="sampleDataCategory.version" label="Version : " />
-    </div>
+  <section class="entity-page">
+    <EntitySideBar cssClass="entity-sidebar" :buttons="navigationButtons" />
+    <NuxtPage />
   </section>
 </template>
-<script setup>
+<script setup lang="ts">
 import BaseLabel from "../../components/commons/BaseLabel.vue";
 import { computed } from "vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
+import { useEntityNavigationButtons } from "../../composables/EntityNavigationButtons";
 
 const store = useSampleDataCategory();
 const sampleDataCategory = computed(() => {
   return { ...store.selectedSampleDataCategory };
 });
+
+const navigationButtons = useEntityNavigationButtons(
+  "/sample-data-categories/",
+  sampleDataCategory.value.name
+);
 </script>
-<script>
+<script lang="ts">
 definePageMeta({
   layout: "entity",
 });

@@ -12,6 +12,7 @@ export const newSampleDataCategory = {
   version: 0,
   modifiedBy: "",
   modifiedAt: new Date().toISOString(),
+  versions: [],
 };
 
 export const useSampleDataCategory = defineStore("SampleDataCategory", {
@@ -107,10 +108,10 @@ export const useSampleDataCategory = defineStore("SampleDataCategory", {
         })
         .catch((error: Error) => console.error(error));
     },
-    async getSampleDataCategoryAction(name: string) {
-      if (name) {
+    async getSampleDataCategoryAction(id: number | undefined) {
+      if (id) {
         const existingSampleDataCategory = this.sampleDataCategories.find(
-          (sampleDataCategory) => sampleDataCategory.name === name
+          (sampleDataCategory) => sampleDataCategory.id === id
         );
         if (existingSampleDataCategory) {
           this.selectedSampleDataCategory = existingSampleDataCategory;
@@ -120,7 +121,7 @@ export const useSampleDataCategory = defineStore("SampleDataCategory", {
           const session = await getSession();
 
           return SampleDataCategoryService.getSampleDataCategory(
-            name,
+            id,
             session?.accessToken
           )
             .then((response) => {
