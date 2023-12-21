@@ -10,6 +10,17 @@
       </button>
     </header>
 
+    <Accordion
+      class="sample-data-category-criteria"
+      sectionTitle="Critères de recherche"
+    >
+      <BaseInput
+        label="Nom de la catégorie"
+        v-model="nameCriteria"
+        cssClass="form-field-horizontal"
+      />
+    </Accordion>
+
     <div v-if="!loading">
       <SampleDataCategoryCard
         v-for="(sampleDataCategory, index) in sampleDataCategories"
@@ -43,25 +54,43 @@ import { faPlus, faSync } from "@fortawesome/free-solid-svg-icons";
 import SampleDataCategoryCard from "@/components/SampleDataCategory/SampleDataCategoryCard.vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
 import { computed } from "vue";
+import { AxiosError } from "axios";
+import BaseInput from "~/components/commons/BaseInput.vue";
+import Accordion from "~/components/commons/Accordion.vue";
 
+const { signIn } = useAuth();
 const router = useRouter();
 const store = useSampleDataCategory();
 const loading = computed(() => store.loading);
+const nameCriteria = ref("");
 
 function getData() {
   // load data
-  store.getSampleDataCategoriesAction(null).catch((e) => {
-    throw createError({
-      statusCode: 503,
-      statusMessage:
-        "Unable to fetch sampleDataCategorys at this time. Please try again.",
-    });
+  store.getSampleDataCategoriesAction(null).catch((error) => {
+    console.error(error);
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 401) {
+        signIn();
+      }
+    } else {
+      throw createError({
+        statusCode: 503,
+        statusMessage:
+          "Unable to fetch sampleDataCategorys at this time. Please try again.",
+      });
+    }
   });
 }
 
 getData();
 
-const sampleDataCategories = computed(() => [...store.sampleDataCategories]);
+const sampleDataCategories = computed(() => {
+  return [...store.sampleDataCategories].filter((sampleDataCategory) =>
+    sampleDataCategory.name
+      .toLowerCase()
+      .includes(nameCriteria.value.toLowerCase())
+  );
+});
 
 function createNewCategorie() {
   store.createNewSampleDataCategoryAction();
@@ -80,6 +109,9 @@ const handleDeleteEvent = (sampleDataCategory: SampleDataCategory) => {
 </script>
 <style scoped>
 /* Your other styles here */
+.sample-data-category-criteria {
+  margin: var(--min-margin); /* Adjust the margin value as needed */
+}
 
 .sample-data-category-card {
   margin-top: 0.5em; /* Adjust the margin value as needed */

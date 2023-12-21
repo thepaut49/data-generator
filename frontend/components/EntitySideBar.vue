@@ -23,8 +23,8 @@ defineProps({
 <style scoped>
 a {
   justify-content: center;
-  height: 2em;
-  border-radius: 5px;
+  line-height: 2em;
+  border-radius: var(--border-radius);
   background: linear-gradient(to right, #16c0b0, #84cf6a);
   font-size: 1em;
   color: white;

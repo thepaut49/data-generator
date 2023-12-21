@@ -31,51 +31,55 @@
 /*import { ref, watchEffect } from "vue";
 import BaseSelect from "~~/components/commons/BaseSelect.vue";
 import JsonComparison from "~~/components/commons/JsonComparison.vue";
-import { SampleDataCategory } from "~~/types/entity/SampleDataCategory";
-import { SampleDataCategoryAudit } from "~~/types/entity/SampleDataCategoryAudit";
 
 const props = defineProps({
   entity: {
-    type: Object as () => SampleDataCategory,
+    type: Object as () => Generic,
     required: true,
   },
 });
 
-let options = ref<{ label: number; value: SampleDataCategoryAudit }[]>([]);
+let options = reactive<{ label: number; value: GenericAudit }[]>([]);
 
-const initGeneric = new SampleDataCategoryAudit();
+const initGeneric = {
+  name: "",
+  id: 0,
+  version: 0,
+  modifiedBy: "",
+  modifiedAt: "",
+};
 
-const leftVersion = ref(initGeneric);
-const rightVersion = ref(initGeneric);
+let leftVersion = reactive(initGeneric);
+let rightVersion = reactive(initGeneric);
 
 watchEffect(() => {
   console.log("Entity:", props.entity);
   console.log("Versions:", props.entity.versions);
-  console.log("Version:", props.entity.versions);
+  console.log("Version:", props.entity.version);
 
-  if (
-    props.entity.version &&
-    props.entity.versions &&
-    props.entity.versions.length > 0
-  ) {
-    options.value = props.entity.versions.map(
-      (element: SampleDataCategoryAudit) => ({
+  try {
+    if (
+      props.entity.version &&
+      props.entity.versions &&
+      props.entity.versions.length > 0
+    ) {
+      options = props.entity.versions.map((element: GenericAudit) => ({
         label: element.version,
         value: element,
-      })
-    );
+      }));
 
-    leftVersion.value =
-      props.entity.versions.find(
-        (element: SampleDataCategoryAudit) =>
-          element.version === props.entity.version
-      ) || initGeneric;
+      leftVersion =
+        props.entity.versions.find(
+          (element: GenericAudit) => element.version === props.entity.version
+        ) || initGeneric;
 
-    rightVersion.value =
-      props.entity.versions.find(
-        (element: SampleDataCategoryAudit) =>
-          element.version === props.entity.version
-      ) || initGeneric;
+      rightVersion =
+        props.entity.versions.find(
+          (element: GenericAudit) => element.version === props.entity.version
+        ) || initGeneric;
+    }
+  } catch (error) {
+    console.log("error catch : {}", error);
   }
 });*/
 </script>

@@ -32,10 +32,10 @@ const sidebarLinks = ref([
 
 <style>
 .app-section {
-  position: relative;
+  /*position: relative;*/
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity));
-  width: 100%;
+  /*width: 100%;*/
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -45,7 +45,6 @@ const sidebarLinks = ref([
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: row;
 }
 
 nav {
@@ -55,7 +54,6 @@ nav {
 .entity-page {
   background-color: blue;
   display: flex;
-  flex-direction: row;
 }
 
 .entity-sidebar {
@@ -65,6 +63,7 @@ nav {
   display: flex;
   flex-direction: column;
   flex: 1;
+  text-align: center;
 }
 .entity-content {
   padding: 0.5rem;

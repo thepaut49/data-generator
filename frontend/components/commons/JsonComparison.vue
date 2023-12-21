@@ -5,15 +5,13 @@
 </template>
 
 <script setup lang="ts">
-import { SampleDataCategoryAudit } from "~~/types/entity/SampleDataCategoryAudit";
-
 const props = defineProps({
   selectedVersion: {
-    type: Object as () => SampleDataCategoryAudit,
+    type: Object as () => GenericAudit,
     required: true,
   },
   versionToCompareTo: {
-    type: Object as () => SampleDataCategoryAudit,
+    type: Object as () => GenericAudit,
     required: true,
   },
   highlightColor: {

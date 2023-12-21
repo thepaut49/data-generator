@@ -19,13 +19,16 @@ body,
   --second-text-color: #184a73;
   --third-text-color: black;
   --fourth-text-color: red;
+  /** Taille de margin **/
   --min-margin: 0.5em;
+  /** border radius **/
+  --border-radius: 5px;
 }
 
 /** Card **/
 
 .card {
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   padding: 1em;
   border: solid 1px #2c3e50;
   cursor: pointer;
@@ -62,7 +65,7 @@ body,
   justify-content: center;
   height: 2em;
   margin: var(--min-margin);
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   background: linear-gradient(to right, #16c0b0, #84cf6a);
   font-size: 1em;
   color: white;

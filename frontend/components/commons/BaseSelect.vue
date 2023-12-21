@@ -29,7 +29,7 @@ import { defineProps, watch } from "vue";
 import UniqueID from "../../features/UniqueID";
 
 const props = defineProps({
-  label: String,
+  label: string,
   multiple: {
     type: Boolean,
     default: false,
@@ -44,11 +44,11 @@ const props = defineProps({
     default: false,
   },
   display: {
-    type: String,
+    type: string,
     default: "vertical",
   },
   cssClass: {
-    type: String,
+    type: string,
     required: true,
   },
 });

@@ -32,7 +32,7 @@ nav {
 
 a {
   color: var(--main-text-color);
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   padding: 0.2rem;
   text-decoration: none;
   flex-grow: 1;

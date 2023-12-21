@@ -1,13 +1,14 @@
 <script setup lang="ts">
+import { faUser } from "@fortawesome/free-solid-svg-icons";
+
 const { status, data, signOut, signIn } = useAuth();
 </script>
 
 <template>
   <section class="login-section">
-    <p v-if="status === 'authenticated'">
-      Authenticated as {{ data?.user?.name }}!
+    <p style="margin-right: 0.1em" v-if="status === 'authenticated'">
+      {{ data?.user?.name }} <font-awesome-icon :icon="['fas', 'user']" />
     </p>
-    <p v-else>Not logged in</p>
     <button
       v-if="status === 'authenticated'"
       @click="signOut({ callbackUrl: '/' })"

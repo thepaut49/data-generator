@@ -35,12 +35,12 @@ export const useSampleDataCategory = defineStore("SampleDataCategory", {
         session?.accessToken
       )
         .then((response) => {
-          /*const addedSampleDataCategory: SampleDataCategory = parseItem(
+          const addedSampleDataCategory: SampleDataCategory = parseItem(
             response,
             201
           );
           this.sampleDataCategories.unshift(addedSampleDataCategory); // mutable addition
-          this.selectedSampleDataCategory = addedSampleDataCategory;*/
+          this.selectedSampleDataCategory = addedSampleDataCategory;
         })
         .catch((error: Error) => console.error(error));
     },
@@ -73,16 +73,12 @@ export const useSampleDataCategory = defineStore("SampleDataCategory", {
       return SampleDataCategoryService.getSampleDataCategories(
         categoryName,
         session?.accessToken
-      )
-        .then((response) => {
-          this.sampleDataCategories = parseList(response);
-          this.selectedSampleDataCategory = { ...newSampleDataCategory };
-          this.loading = false;
-          this.lastLoadingDate = new Date();
-        })
-        .catch((error: Error) => {
-          console.log(error);
-        });
+      ).then((response) => {
+        this.sampleDataCategories = parseList(response);
+        this.selectedSampleDataCategory = { ...newSampleDataCategory };
+        this.loading = false;
+        this.lastLoadingDate = new Date();
+      });
     },
     async updateSampleDataCategoryAction(
       sampleDataCategory: SampleDataCategory
@@ -123,20 +119,18 @@ export const useSampleDataCategory = defineStore("SampleDataCategory", {
           return SampleDataCategoryService.getSampleDataCategory(
             id,
             session?.accessToken
-          )
-            .then((response) => {
-              const sampleDataCategory: SampleDataCategory = parseItem(
-                response,
-                200
-              );
-              const index = this.sampleDataCategories.findIndex(
-                (h: SampleDataCategory) => h.name === sampleDataCategory.name
-              );
-              this.sampleDataCategories.splice(index, 1, sampleDataCategory);
-              this.sampleDataCategories = [...this.sampleDataCategories];
-              this.selectedSampleDataCategory = { ...sampleDataCategory };
-            })
-            .catch((error: Error) => console.error(error));
+          ).then((response) => {
+            const sampleDataCategory: SampleDataCategory = parseItem(
+              response,
+              200
+            );
+            const index = this.sampleDataCategories.findIndex(
+              (h: SampleDataCategory) => h.name === sampleDataCategory.name
+            );
+            this.sampleDataCategories.splice(index, 1, sampleDataCategory);
+            this.sampleDataCategories = [...this.sampleDataCategories];
+            this.selectedSampleDataCategory = { ...sampleDataCategory };
+          });
         }
       }
     },
