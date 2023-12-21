@@ -1,4 +1,4 @@
 package com.thepaut.backend.dto;
 
-public record SampleDataCategoryCreationDto(String name, Long version) {
+public record SampleDataCategoryCreationDto(String name) {
 }

@@ -1,6 +1,13 @@
 package com.thepaut.backend.dto;
 
-import java.time.LocalDateTime;
+import com.thepaut.backend.dto.audit.SampleDataAuditDto;
+import lombok.Data;
 
-public record SampleDataDto(String categoryName, String key, String value,Long version, LocalDateTime modifiedAt, String modifiedBy, boolean isBlobValue, String blobValue) {
+@Data
+public class SampleDataDto  extends GenericDto<SampleDataAuditDto> {
+    private String categoryName;
+    private String key;
+    private String value;
+    private boolean isBlobValue;
+    private String blobValue;
 }

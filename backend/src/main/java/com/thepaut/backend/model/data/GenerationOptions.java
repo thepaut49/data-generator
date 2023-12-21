@@ -5,23 +5,13 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Setter
 @Getter
 @Entity
 @ToString
-@Table(name = "generation_options", uniqueConstraints = {
-        @UniqueConstraint(name = "GOUniqueNameAndVersion", columnNames = {"name", "version"})
-})
-public class GenerationOptions {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "version")
-    private Long version;
+@Table(name = "generation_options")
+public class GenerationOptions extends GenericEntity {
 
     @Column(name = "name")
     private String name;
@@ -34,18 +24,11 @@ public class GenerationOptions {
     private Boolean positiveNumber;
 
     @ManyToOne
-    @JoinColumn(name = "sample_data_category_id")
+    @JoinColumn(name = "category_id", referencedColumnName = "id") // Match the column names in SampleDataCategoryId
     private SampleDataCategory sampleDataCategory;
 
     @ManyToOne
     @JoinColumn(name = "regex_id")
     private Regex regex;
-
-    @Column(name = "modified_by")
-    private String modifiedBy;
-
-    @Column(name = "modified_at")
-    private LocalDateTime modifiedAt;
-
 
 }

@@ -20,38 +20,38 @@ public class SampleDataController {
     private ISampleDataService sampleDataService;
 
     @PostMapping
-    public SampleDataDto create(@PathVariable String categoryName, @RequestBody @Valid SampleDataDto sampleDataDto) {
-        return sampleDataService.createSampleData(categoryName, sampleDataDto);
+    public SampleDataDto create(@PathVariable Long categoryId, @RequestBody @Valid SampleDataDto sampleDataDto) {
+        return sampleDataService.createSampleData(categoryId, sampleDataDto);
     }
 
     @PutMapping("{key}")
-    public SampleDataDto update(@PathVariable String categoryName, @PathVariable String key, @RequestBody @Valid SampleDataDto sampleDataDto) {
-        return sampleDataService.updateSampleData(categoryName, key, sampleDataDto);
+    public SampleDataDto update(@PathVariable Long categoryId, @PathVariable String key, @RequestBody @Valid SampleDataDto sampleDataDto) {
+        return sampleDataService.updateSampleData(categoryId, key, sampleDataDto);
     }
 
     @PutMapping("{key}/rollback")
-    public SampleDataDto rollbackToPreviousVersion(@PathVariable String categoryName, @PathVariable String key) {
-        return sampleDataService.rollbackToPreviousVersion(categoryName, key);
+    public SampleDataDto rollbackToPreviousVersion(@PathVariable Long categoryId, @PathVariable String key) {
+        return sampleDataService.rollbackToPreviousVersion(categoryId, key);
     }
 
     @PutMapping("{key}/rollback/{version}")
-    public SampleDataDto rollbackToPreviousVersion(@PathVariable String categoryName, @PathVariable String key, @PathVariable Long version ) {
-        return sampleDataService.rollbackToVersion(categoryName, key, version);
+    public SampleDataDto rollbackToPreviousVersion(@PathVariable Long categoryId, @PathVariable String key, @PathVariable Long version ) {
+        return sampleDataService.rollbackToVersion(categoryId, key, version);
     }
 
     @DeleteMapping("{key}")
-    public ResponseEntity<String> delete(@PathVariable String categoryName, @PathVariable String key) {
-        sampleDataService.deleteSampleDataByCategoryNameAndKey(categoryName, key);
-        return new ResponseEntity<>("Donnée supprimée !", HttpStatus.OK);
+    public ResponseEntity<String> delete(@PathVariable Long categoryId, @PathVariable String key) {
+        sampleDataService.deleteSampleDataByCategoryIdAndKey(categoryId, key);
+        return new ResponseEntity<>("Donnée " + key +  " supprimée !", HttpStatus.OK);
     }
 
     @GetMapping("{key}")
-    public SampleDataDto get(@PathVariable String categoryName, @PathVariable String key) {
-        return sampleDataService.getSampleData(categoryName, key);
+    public SampleDataDto get(@PathVariable Long categoryId, @PathVariable String key) {
+        return sampleDataService.getSampleData(categoryId, key);
     }
 
     @GetMapping()
-    public ListResponse<SampleDataDto> findSampleDatas(@PathVariable String categoryName, @RequestParam(required = false) String key, @RequestParam(required = false) String value,  @RequestParam(required = false) boolean isLobValue ) {
-        return new ListResponse<>(sampleDataService.getSampleDatas(categoryName, key, value, isLobValue));
+    public ListResponse<SampleDataDto> findSampleDatas(@PathVariable Long categoryId, @RequestParam(required = false) String key, @RequestParam(required = false) String value, @RequestParam(required = false) boolean isBlobValue ) {
+        return new ListResponse<>(sampleDataService.getSampleDatas(categoryId, key, value, isBlobValue));
     }
 }

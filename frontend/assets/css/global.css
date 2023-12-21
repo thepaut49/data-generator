@@ -1,0 +1,97 @@
+html,
+body,
+#__nuxt,
+#__layout {
+  height: 100% !important;
+  width: 100% !important;
+  margin: 0px;
+}
+
+:root {
+  /** Couleur de fond **/
+  --main-bg-color: #184a73;
+  --second-bg-color: #c3423d;
+  --third-bg-color: #343f4d;
+  --fourth-bg-color: #51aa3a;
+  --fifth-bg-color: #bdd7e2;
+  /** Couleur de texte **/
+  --main-text-color: white;
+  --second-text-color: #184a73;
+  --third-text-color: black;
+  --fourth-text-color: red;
+  /** Taille de margin **/
+  --min-margin: 0.5em;
+  /** border radius **/
+  --border-radius: 5px;
+}
+
+/** Card **/
+
+.card {
+  border-radius: var(--border-radius);
+  padding: 1em;
+  border: solid 1px #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s linear;
+}
+
+.card > h1 {
+  margin: var(--min-margin);
+}
+
+.card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.2), 0 1px 15px 0 rgba(0, 0, 0, 0.19);
+}
+
+.card-footer-buttons {
+  margin: var(--min-margin);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.card-footer-buttons > * {
+  display: block;
+  margin: var(--min-margin);
+}
+
+/** button in content **/
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2em;
+  margin: var(--min-margin);
+  border-radius: var(--border-radius);
+  background: linear-gradient(to right, #16c0b0, #84cf6a);
+  font-size: 1em;
+  color: white;
+  border: none;
+  outline: none;
+}
+
+.button:hover {
+  transform: scale(1.01);
+  box-shadow: 0 3px 12px 0 rgba(0, 0, 0, 0.2), 0 1px 15px 0 rgba(0, 0, 0, 0.19);
+  font-weight: bold;
+}
+
+.form-field-horizontal {
+  display: flex;
+  align-items: center;
+}
+
+.form-field-horizontal > * {
+  display: block;
+  margin: var(--min-margin);
+}
+
+.form-field-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: var(--min-margin);
+}

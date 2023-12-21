@@ -5,7 +5,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,17 +13,9 @@ import java.util.List;
 @ToString
 @Entity
 @Table(name="typical_model", uniqueConstraints = {
-        @UniqueConstraint(name = "TMUniqueNameAndVersion", columnNames = {"name", "version"})
+        //@UniqueConstraint(name = "TMUniqueNameAndVersion", columnNames = {"name", "version"})
 })
-public class TypicalModel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "version")
-    private Long version;
+public class TypicalModel extends GenericEntity{
 
     @Column(name = "name")
     private String name;
@@ -39,11 +30,5 @@ public class TypicalModel {
             inverseJoinColumns = @JoinColumn(name = "typical_model_id", referencedColumnName = "id")
     )
     private List<TypicalModelField> fields = new ArrayList<>();
-
-    @Column(name = "modified_by")
-    private String modifiedBy;
-
-    @Column(name = "modified_at")
-    private LocalDateTime modifiedAt;
 
 }
