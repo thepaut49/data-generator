@@ -31,7 +31,7 @@ public class SampleData extends GenericEntity<SampleDataAudit>{
     private String blobValue;
 
     @Column(name = "is_blob_value")
-    private boolean isBlobValue;
+    private boolean isBlobTypeValue;
 
 
     @Transient

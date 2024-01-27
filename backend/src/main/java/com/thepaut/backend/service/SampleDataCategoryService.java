@@ -2,24 +2,129 @@ package com.thepaut.backend.service;
 
 import com.thepaut.backend.dto.SampleDataCategoryCreationDto;
 import com.thepaut.backend.dto.SampleDataCategoryDto;
+import com.thepaut.backend.exception.EntityNotFoundException;
+import com.thepaut.backend.exception.EntityVersionNotFoundException;
 import com.thepaut.backend.mapper.SampleDataCategoryMapper;
-import com.thepaut.backend.mapper.audit.SampleDataCategoryAuditMapper;
 import com.thepaut.backend.model.data.SampleDataCategory;
 import com.thepaut.backend.model.data.audit.SampleDataCategoryAudit;
 import com.thepaut.backend.repository.data.SampleDataCategoryRepository;
 import com.thepaut.backend.repository.data.audit.SampleDataCategoryAuditRepository;
+import com.thepaut.backend.utils.Constants;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
-public class SampleDataCategoryService extends GenericEntityService<SampleDataCategoryCreationDto, SampleDataCategoryDto, SampleDataCategory, SampleDataCategoryAudit> implements ISampleDataCategoryService {
+public class SampleDataCategoryService implements ISampleDataCategoryService, IGenericEntityService<SampleDataCategoryCreationDto, SampleDataCategoryDto, SampleDataCategory, SampleDataCategoryAudit> {
+    
+    private final SampleDataCategoryRepository entityRepository;
+    private final SampleDataCategoryAuditRepository auditRepository;
 
+    @Override
+    public SampleDataCategoryDto getEntityById(String path, Long id) {
+        SampleDataCategory sampleDataCategory = entityRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException( id, SampleDataCategory.class.getName(),
+                        path,
+                        Constants.CODE_SAMPLE_DATA_CATEGORY_NOT_FOUND));
+        sampleDataCategory.setVersions(auditRepository.findByIdOrderByVersionDesc(id));
+        sampleDataCategory.addVersion(convertEntityToAudit(sampleDataCategory));
+        return convertEntityToUpdateDto(sampleDataCategory);
+    }
 
-    public SampleDataCategoryService(SampleDataCategoryRepository entityRepository, SampleDataCategoryAuditRepository auditRepository) {
-        super(entityRepository, auditRepository);
+    @Transactional
+    @Override
+    public SampleDataCategoryDto rollbackToPreviousVersion(String path,Long id) {
+        SampleDataCategory currentSampleDataCategory = entityRepository.findById(id).orElseThrow(() ->  new EntityNotFoundException( id, SampleDataCategory.class.getName(),
+                path,
+                Constants.CODE_SAMPLE_DATA_CATEGORY_NOT_FOUND));
+        SampleDataCategory previousVersion = getPreviousVersion(path, id,currentSampleDataCategory.getVersion() - 1);
+        previousVersion = entityRepository.save(previousVersion);
+        auditRepository.deleteFirstByIdOrderByVersionDesc(id);
+        return convertEntityToUpdateDto(previousVersion);
+    }
+
+    @Transactional
+    @Override
+    public SampleDataCategoryDto rollbackToVersion(String path, Long id, Long version) {
+        SampleDataCategory specificVersion = getSpecificVersion(path, id,version);
+        specificVersion = entityRepository.save(specificVersion);
+        auditRepository.deleteByIdAndVersionGreaterThanEqual(id,version);
+        return convertEntityToUpdateDto(specificVersion);
+    }
+
+    @Override
+    public SampleDataCategoryDto createEntity(String path, @Valid SampleDataCategoryCreationDto creationDto) {
+        SampleDataCategory sampleDataCategory = convertCreationDtoToEntity(creationDto);
+        sampleDataCategory.setModifiedBy(UserService.getUserId());
+        sampleDataCategory = entityRepository.save(sampleDataCategory);
+        sampleDataCategory.addVersion(convertEntityToAudit(sampleDataCategory));
+        return convertEntityToUpdateDto(sampleDataCategory);
+    }
+
+    @Transactional
+    @Override
+    public SampleDataCategoryDto updateEntity(String path, Long id, @Valid SampleDataCategoryDto updateDto) {
+        // Sauvegarde de l'ancienne version
+        SampleDataCategory oldVersion = entityRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(id,SampleDataCategory.class.getName(),
+                path,
+                Constants.CODE_SAMPLE_DATA_CATEGORY_NOT_FOUND));
+        auditRepository.save(convertEntityToAudit(oldVersion));
+        // Mise à jour de l'SampleDataCategory
+        List<SampleDataCategoryAudit> versions = auditRepository.findByIdOrderByVersionDesc(id);
+        SampleDataCategory updatedSampleDataCategory = convertUpdateDtoToEntity(updateDto);
+        updatedSampleDataCategory.setVersion(updateDto.getVersion() + 1);
+        updatedSampleDataCategory.setModifiedBy(UserService.getUserId());
+        updatedSampleDataCategory = entityRepository.save(updatedSampleDataCategory);
+        // Construction de la liste des versions
+        updatedSampleDataCategory.setVersions(versions);
+        updatedSampleDataCategory.addVersion(convertEntityToAudit(updatedSampleDataCategory));
+        return convertEntityToUpdateDto(updatedSampleDataCategory);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteById(Long id) {
+        entityRepository.deleteById(id);
+        auditRepository.deleteById(id);
+        return true;
+    }
+
+    @Override
+    public SampleDataCategory getPreviousVersion(String path, Long id, Long version) {
+        List<SampleDataCategoryAudit> versions = auditRepository.findByIdOrderByVersionDesc(id);
+        if (versions.isEmpty()) {
+            throw new EntityVersionNotFoundException(id, version, SampleDataCategory.class.getName(),
+                    path,
+                    Constants.CODE_SAMPLE_DATA_CATEGORY_VERSION_NOT_FOUND);
+        } else {
+            SampleDataCategoryAudit previousVersion = versions.get(0);
+            SampleDataCategory sampleDataCategory = convertAuditToEntity(path, previousVersion);
+            sampleDataCategory.setVersions(versions);
+            auditRepository.deleteFirstByIdOrderByVersionDesc(id);
+            return sampleDataCategory;
+        }
+    }
+
+    @Override
+    public SampleDataCategory getSpecificVersion(String path, Long id, Long version) {
+        List<SampleDataCategoryAudit> versions = auditRepository.findByIdAndVersionLessThanEqualOrderByVersionDesc(id,version);
+        if (versions.isEmpty()) {
+            throw new EntityVersionNotFoundException(id, version, SampleDataCategory.class.getName(),
+                    path,
+                    Constants.CODE_SAMPLE_DATA_CATEGORY_VERSION_NOT_FOUND);
+        } else {
+            SampleDataCategoryAudit specificVersion = versions.get(0);
+            SampleDataCategory category = convertAuditToEntity(path, specificVersion);
+            category.setVersions(versions);
+            auditRepository.deleteByIdAndVersionGreaterThanEqual(id, version);
+            return category;
+        }
     }
 
     @Override
@@ -36,7 +141,7 @@ public class SampleDataCategoryService extends GenericEntityService<SampleDataCa
     private List<SampleDataCategory> getAllSampleDataCategories(String categoryName) {
         List<SampleDataCategory> categories;
         if (StringUtils.hasText(categoryName)) {
-            categories  = ((SampleDataCategoryRepository)entityRepository).findByNameContainingIgnoreCase(categoryName, Sort
+            categories  = entityRepository.findByNameContainingIgnoreCase(categoryName, Sort
                     .by(Sort.Direction.ASC, "name"));
         } else {
             categories = entityRepository.findAll(Sort
@@ -51,8 +156,8 @@ public class SampleDataCategoryService extends GenericEntityService<SampleDataCa
     }
 
     @Override
-    public SampleDataCategory convertAuditToEntity(SampleDataCategoryAudit entityAudit) {
-        return SampleDataCategoryMapper.INSTANCE.convertAuditToEntity(entityAudit);
+    public SampleDataCategory convertAuditToEntity(String path, SampleDataCategoryAudit audit) {
+        return SampleDataCategoryMapper.INSTANCE.convertAuditToEntity(audit);
     }
 
     @Override

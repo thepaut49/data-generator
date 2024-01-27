@@ -25,7 +25,7 @@ public class SampleDataAudit extends GenericEntityAudit {
     private String blobValue;
 
     @Column(name = "is_blob_value")
-    private boolean isBlobValue;
+    private boolean isBlobTypeValue;
 
 
 }

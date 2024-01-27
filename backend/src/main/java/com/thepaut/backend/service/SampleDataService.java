@@ -1,160 +1,167 @@
 package com.thepaut.backend.service;
 
+import com.thepaut.backend.dto.SampleDataCreationDto;
 import com.thepaut.backend.dto.SampleDataDto;
+import com.thepaut.backend.exception.EntityNotFoundException;
+import com.thepaut.backend.exception.EntityVersionNotFoundException;
 import com.thepaut.backend.mapper.SampleDataMapper;
 import com.thepaut.backend.model.data.SampleData;
 import com.thepaut.backend.model.data.SampleDataCategory;
+import com.thepaut.backend.model.data.audit.SampleDataAudit;
 import com.thepaut.backend.repository.data.SampleDataCategoryRepository;
 import com.thepaut.backend.repository.data.SampleDataRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import com.thepaut.backend.repository.data.SampleDataRepositoryCustom;
+import com.thepaut.backend.repository.data.audit.SampleDataAuditRepository;
+import com.thepaut.backend.utils.Constants;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
+
+@RequiredArgsConstructor
 @Service
-public class SampleDataService implements ISampleDataService{
+public class SampleDataService implements ISampleDataService, IGenericEntityService<SampleDataCreationDto, SampleDataDto, SampleData, SampleDataAudit> {
 
-    public static final String CATEGORIE_INCONNU = "Catégorie inconnu : ";
-    @Autowired
-    SampleDataRepository sampleDataRepository;
-
-    @Autowired
-    SampleDataCategoryRepository sampleDataCategoryRepository;
+    private final SampleDataRepository entityRepository;
+    private final SampleDataAuditRepository auditRepository;
+    private final SampleDataCategoryRepository sampleDataCategoryRepository;
+    private final SampleDataRepositoryCustom sampleDataRepositoryCustom;
 
 
     @Override
-    public List<SampleDataDto> getSampleDatas(Long categoryId, String key, String value , boolean isBlobValue) {
-        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
+    public SampleDataDto getEntityById(String path, Long id) {
+        SampleData entity = entityRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(id, SampleData.class.getName(),
+                        path,
+                        Constants.CODE_SAMPLE_DATA_NOT_FOUND));
+        entity.setVersions(auditRepository.findByIdOrderByVersionDesc(id));
+        entity.addVersion(convertEntityToAudit(entity));
+        return convertEntityToUpdateDto(entity);
+    }
 
-        List<SampleData> results;
-        Sort sort = Sort.by(Sort.Direction.ASC, "key").and(Sort.by(Sort.Direction.DESC, "version"));
-        // catagory + key + value
-        if (sampleDataCategory != null && StringUtils.hasText(key) && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(sampleDataCategory, key, value, sort);
-        } // catagory + key + blobvalue
-        else if (sampleDataCategory != null && StringUtils.hasText(key) && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCaseAndValueContainingIgnoreCase(sampleDataCategory, key, value, sort);
-        } // catagory + value
-        else if (sampleDataCategory != null && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndValueContainingIgnoreCase(sampleDataCategory, value, sort);
-        } // catagory + blobvalue
-        else if (sampleDataCategory != null && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByCategoryAndBlobValueContainingIgnoreCase(sampleDataCategory, value, sort);
-        } // key + value
-        else if (StringUtils.hasText(key) && StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndValueContainingIgnoreCase(key, value, sort);
-        } // key + blobvalue
-        else if (StringUtils.hasText(key) &&sampleDataCategory != null && StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCaseAndBlobValueContainingIgnoreCase(key, value, sort);
-        } // category + key
-        else if (sampleDataCategory != null && StringUtils.hasText(key)) {
-            results = sampleDataRepository.findByCategoryAndKeyContainingIgnoreCase(sampleDataCategory, key, sort);
-        } // category
-        else if (sampleDataCategory != null) {
-            results = sampleDataRepository.findByCategory(sampleDataCategory, sort);
-        } // key
-        else if (StringUtils.hasText(key)) {
-            results = sampleDataRepository.findByKeyContainingIgnoreCase(key, sort);
-        } // value
-        else if (StringUtils.hasText(value) && !isBlobValue) {
-            results = sampleDataRepository.findByValueContainingIgnoreCase(value, sort);
-        } // blobvalue
-        else if (StringUtils.hasText(value) && isBlobValue) {
-            results = sampleDataRepository.findByBlobValueContainingIgnoreCase(value, sort);
+    @Transactional
+    @Override
+    public SampleDataDto rollbackToPreviousVersion(String path, Long id) {
+        SampleData currentEntity = entityRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(id, SampleData.class.getName(),
+                path,
+                Constants.CODE_SAMPLE_DATA_NOT_FOUND));
+        SampleData previousVersion = getPreviousVersion(path, id, currentEntity.getVersion() - 1);
+        previousVersion = entityRepository.save(previousVersion);
+        auditRepository.deleteFirstByIdOrderByVersionDesc(id);
+        return convertEntityToUpdateDto(previousVersion);
+    }
+
+    @Override
+    public SampleDataDto rollbackToVersion(String path, Long id, Long version) {
+        SampleData specificVersion = getSpecificVersion(path, id, version);
+        specificVersion = entityRepository.save(specificVersion);
+        auditRepository.deleteByIdAndVersionGreaterThanEqual(id, version);
+        return convertEntityToUpdateDto(specificVersion);
+    }
+
+    @Override
+    public SampleDataDto createEntity(String path, @Valid SampleDataCreationDto creationDto) {
+        SampleData entity = convertCreationDtoToEntity(creationDto);
+        entity.setModifiedBy(UserService.getUserId());
+        entity = entityRepository.save(entity);
+        entity.addVersion(convertEntityToAudit(entity));
+        return convertEntityToUpdateDto(entity);
+    }
+
+    @Transactional
+    @Override
+    public SampleDataDto updateEntity(String path, Long id, @Valid SampleDataDto updateDto) {
+        // Sauvegarde de l'ancienne version
+        SampleData oldVersion = entityRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(id, SampleData.class.getName(), path,
+                Constants.CODE_SAMPLE_DATA_NOT_FOUND));
+        auditRepository.save(convertEntityToAudit(oldVersion));
+        // Mise à jour de l'entity
+        List<SampleDataAudit> versions = auditRepository.findByIdOrderByVersionDesc(id);
+        SampleData updatedEntity = convertUpdateDtoToEntity(updateDto);
+        updatedEntity.setVersion(updateDto.getVersion() + 1);
+        updatedEntity.setModifiedBy(UserService.getUserId());
+        updatedEntity = entityRepository.save(updatedEntity);
+        // Construction de la liste des versions
+        updatedEntity.setVersions(versions);
+        updatedEntity.addVersion(convertEntityToAudit(updatedEntity));
+        return convertEntityToUpdateDto(updatedEntity);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteById(Long id) {
+        entityRepository.deleteById(id);
+        auditRepository.deleteById(id);
+        return true;
+    }
+
+    @Override
+    public SampleData getPreviousVersion(String path, Long id, Long version) {
+        List<SampleDataAudit> versions = auditRepository.findByIdOrderByVersionDesc(id);
+        if (versions.isEmpty()) {
+            throw new EntityVersionNotFoundException(id, version, SampleData.class.getName(), path, Constants.CODE_SAMPLE_DATA_VERSION_NOT_FOUND);
         } else {
-            results = sampleDataRepository.findAll(sort);
+            SampleDataAudit previousVersion = versions.get(0);
+            SampleData genericEntity = convertAuditToEntity(path, previousVersion);
+            genericEntity.setVersions(versions);
+            auditRepository.deleteFirstByIdOrderByVersionDesc(id);
+            return genericEntity;
         }
-        results = getOnlyLastVersion(results);
+    }
+
+    @Override
+    public SampleData getSpecificVersion(String path, Long id, Long version) {
+        List<SampleDataAudit> versions = auditRepository.findByIdAndVersionLessThanEqualOrderByVersionDesc(id, version);
+        if (versions.isEmpty()) {
+            throw new EntityVersionNotFoundException(id, version, SampleData.class.getName(), path, Constants.CODE_SAMPLE_DATA_VERSION_NOT_FOUND);
+        } else {
+            SampleDataAudit specificVersion = versions.get(0);
+            SampleData sampleData = convertAuditToEntity(path, specificVersion);
+            sampleData.setVersions(versions);
+            auditRepository.deleteByIdAndVersionGreaterThanEqual(id, version);
+            return sampleData;
+        }
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SampleDataDto> getSampleDatas(Long categoryId, String key, String value, Boolean isBlobValue) {
+        List<SampleData> results = sampleDataRepositoryCustom.findByCriteria(categoryId, key, isBlobValue, value);
         return results.stream().map(SampleDataMapper.INSTANCE::convertEntityToUpdateDto).toList();
     }
 
-    private List<SampleData> getOnlyLastVersion(List<SampleData> datas) {
-        List<SampleData> filteredDatas = new ArrayList<>();
-        boolean firstElement = true;
-        SampleData currentData = new SampleData();
-        for(SampleData data : datas) {
-            if (firstElement) {
-                firstElement = false;
-                filteredDatas.add(data);
-                currentData = data;
-            }
-            else {
-                if (data.getKey().equals(currentData.getKey())) {
-                   // currentData.addVersion(data);
-                }
-                else {
-                    filteredDatas.add(data);
-                    currentData = data;
-                }
-            }
-        }
-        return filteredDatas;
-    }
-
     @Override
-    public SampleDataDto getSampleData(Long categoryId, String key) {
-        SampleData sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
-       // sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyOrderByVersionDesc(categoryId, key));
-        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
-    }
-
-    @Override
-    public SampleDataDto rollbackToPreviousVersion(Long categoryId, String key) {
-        sampleDataRepository.deleteFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key);
-        SampleData sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key).orElseThrow( () -> new ResourceNotFoundException("Catégorie " + categoryId + " clé : " + key + "  inconnu !" ));
-        Long previousVersion = sampleData.getVersion();
-      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryId, key, previousVersion));
-        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
-    }
-
-    @Override
-    public SampleDataDto rollbackToVersion(Long categoryId, String key, Long version) {
-        sampleDataRepository.deleteByCategoryIdAndKeyAndVersionGreaterThan(categoryId, key, version);
-        SampleData sampleData = sampleDataRepository.findByCategoryIdAndKeyAndVersion(categoryId, key, version).orElseThrow( () -> new ResourceNotFoundException("Clé version " + version + " introuvable !" ));
-      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyAndVersionLessThanEqualOrderByVersionDesc(categoryId, key, version));
-        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
-    }
-
-    @Override
-    public SampleDataDto createSampleData(Long categoryId, SampleDataDto sampleDataDto) {
-        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findFirstByIdOrderByVersionDesc(categoryId)
-                .orElseThrow(() -> new ResourceNotFoundException(CATEGORIE_INCONNU + categoryId ));
-        SampleData sampleData = SampleDataMapper.INSTANCE.convertUpdateDtoToEntity(sampleDataDto);
+    public SampleData convertAuditToEntity(String path, SampleDataAudit audit) {
+        SampleDataCategory sampleDataCategory = sampleDataCategoryRepository.findById(audit.getCategoryId())
+                .orElseThrow(() -> new EntityNotFoundException(audit.getCategoryId(), SampleDataCategory.class.getName(),
+                        path,
+                        Constants.CODE_SAMPLE_DATA_CATEGORY_NOT_FOUND));
+        SampleData sampleData = SampleDataMapper.INSTANCE.convertAuditToEntity(audit);
         sampleData.setCategory(sampleDataCategory);
-        sampleData.setModifiedBy(UserService.getUserId());
-     //   sampleData.addVersion(sampleData);
-        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleDataRepository.save(sampleData));
+        return sampleData;
     }
 
     @Override
-    public SampleDataDto updateSampleData(Long categoryId, String key, SampleDataDto sampleDataDto) {
-        SampleData sampleData = SampleDataMapper.INSTANCE.convertUpdateDtoToEntity(sampleDataDto);
-        sampleData.setVersion(newVersion(categoryId, key));
-        sampleData.setModifiedBy(UserService.getUserId());
-        sampleData = sampleDataRepository.save(sampleData);
-      //  sampleData.setSampleDataVersions(sampleDataRepository.findByCategoryCategoryIdAndKeyOrderByVersionDesc(categoryId, key));
-        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(sampleData);
+    public SampleDataAudit convertEntityToAudit(SampleData entity) {
+        return SampleDataMapper.INSTANCE.convertEntityToAudit(entity);
     }
 
     @Override
-    public boolean deleteSampleDataByCategoryIdAndKey(Long categoryId, String key) {
-        return sampleDataRepository.deleteByCategoryIdAndKey(categoryId, key) > 0;
+    public SampleDataDto convertEntityToUpdateDto(SampleData entity) {
+        return SampleDataMapper.INSTANCE.convertEntityToUpdateDto(entity);
     }
 
-    private Long newVersion(Long categoryId, String key) {
-        Optional<SampleData> sampleData = sampleDataRepository.findFirstByCategoryIdAndKeyOrderByVersionDesc(categoryId, key);
-        if (sampleData.isPresent()) {
-            return sampleData.get().getVersion() + 1;
-        }
-        else {
-            return 0L;
-        }
+    @Override
+    public SampleData convertUpdateDtoToEntity(SampleDataDto updateDto) {
+        return SampleDataMapper.INSTANCE.convertUpdateDtoToEntity(updateDto);
+    }
+
+    @Override
+    public SampleData convertCreationDtoToEntity(SampleDataCreationDto creationDto) {
+        return SampleDataMapper.INSTANCE.convertCreationDtoToEntity(creationDto);
     }
 }

@@ -2,12 +2,13 @@ package com.thepaut.backend.repository.data;
 
 import com.thepaut.backend.model.data.SampleDataCategory;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 
+@Repository
 public interface SampleDataCategoryRepository extends GenericEntityRepository<SampleDataCategory> {
 
 

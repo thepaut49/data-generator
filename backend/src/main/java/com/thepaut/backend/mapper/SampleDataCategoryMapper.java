@@ -3,7 +3,6 @@ package com.thepaut.backend.mapper;
 import com.thepaut.backend.dto.SampleDataCategoryCreationDto;
 import com.thepaut.backend.dto.SampleDataCategoryDto;
 import com.thepaut.backend.dto.audit.SampleDataCategoryAuditDto;
-import com.thepaut.backend.mapper.audit.SampleDataCategoryAuditMapper;
 import com.thepaut.backend.model.data.SampleDataCategory;
 import com.thepaut.backend.model.data.audit.SampleDataCategoryAudit;
 import org.mapstruct.Mapper;
@@ -11,7 +10,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 
-@Mapper( uses = { SampleDataCategoryAuditMapper.class})
+@Mapper()
 public interface  SampleDataCategoryMapper {
 
     SampleDataCategoryMapper INSTANCE = Mappers.getMapper( SampleDataCategoryMapper.class );
@@ -24,8 +23,6 @@ public interface  SampleDataCategoryMapper {
 
     @Mapping(target="modifiedAt", expression="java(java.time.LocalDateTime.now())")
     SampleDataCategory convertCreationDtoToEntity(SampleDataCategoryCreationDto creationDto);
-
-    SampleDataCategoryCreationDto convertEntityToCreationDto(SampleDataCategory entity);
 
     SampleDataCategory convertAuditToEntity(SampleDataCategoryAudit audit);
 

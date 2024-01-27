@@ -6,18 +6,14 @@ import java.util.List;
 
 public interface ISampleDataService {
 
-    List<SampleDataDto> getSampleDatas(Long categoryId, String key, String value, boolean isBlobValue);
-
-    SampleDataDto getSampleData(Long categoryId, String key);
-
-    SampleDataDto rollbackToPreviousVersion(Long categoryId, String key);
-
-    SampleDataDto rollbackToVersion(Long categoryId, String key, Long version);
-
-    SampleDataDto createSampleData(Long categoryId, SampleDataDto sampleDataDto);
-
-    SampleDataDto updateSampleData(Long categoryId, String key, SampleDataDto sampleDataDto);
-
-    boolean deleteSampleDataByCategoryIdAndKey(Long categoryId, String key);
+    /**
+     *      * Récupère la liste des données et filtre par categoryId, key, value, isBlobTypeValue
+     * @param categoryId
+     * @param key
+     * @param value
+     * @param isBlobValue
+     * @return
+     */
+    List<SampleDataDto> getSampleDatas(Long categoryId, String key, String value, Boolean isBlobValue) ;
 
 }
