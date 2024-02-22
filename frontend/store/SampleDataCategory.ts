@@ -1,10 +1,7 @@
 import { defineStore } from "pinia";
-import {
-  parseItem,
-  parseDeleteResponse,
-  parseList,
-} from "../shared/data.service";
-import SampleDataCategoryService from "../services/SampleDataCategoryService";
+import type { Ref } from "vue";
+import { handleError } from "../utils/StoreUtils";
+import { updateElement } from "../utils/CollectionUtils";
 
 export const newSampleDataCategory = {
   id: undefined,
@@ -15,127 +12,273 @@ export const newSampleDataCategory = {
   versions: [],
 };
 
-export const useSampleDataCategory = defineStore("SampleDataCategory", {
-  state() {
-    return {
-      sampleDataCategories: [] as SampleDataCategory[],
-      selectedSampleDataCategory: {} as SampleDataCategory,
-      loading: false,
-      lastLoadingDate: new Date(1970, 0, 1, 0, 0, 0),
-    };
-  },
-  getters: {},
-  actions: {
-    async addSampleDataCategoryAction(sampleDataCategory: SampleDataCategory) {
-      const { getSession } = useAuth();
-      const session = await getSession();
+export const useSampleDataCategory = defineStore("SampleDataCategory", () => {
+  const { getSession, signIn } = useAuth();
+  const config = useRuntimeConfig();
+  const BACKEND_API_URL = config.public.BACKEND_API_URL;
+  const sampleDataCategories: Ref<SampleDataCategory[]> = ref([]);
+  const filteredSampleDataCategories: Ref<SampleDataCategory[]> = ref([]);
+  const selectedSampleDataCategory: Ref<SampleDataCategory | null> =
+    ref<SampleDataCategory | null>(null);
+  const loading = ref(false);
+  const lastLoadingDate = ref(new Date(1970, 0, 1, 0, 0, 0));
+  const nameCriteria = ref("");
 
-      return SampleDataCategoryService.addSampleDataCategory(
-        sampleDataCategory,
-        session?.accessToken
-      )
-        .then((response) => {
-          const addedSampleDataCategory: SampleDataCategory = parseItem(
-            response,
-            201
-          );
-          this.sampleDataCategories.unshift(addedSampleDataCategory); // mutable addition
-          this.selectedSampleDataCategory = addedSampleDataCategory;
-        })
-        .catch((error: Error) => console.error(error));
-    },
-    async deleteSampleDataCategoryAction(
-      sampleDataCategory: SampleDataCategory
-    ) {
-      const { getSession } = useAuth();
-      const session = await getSession();
-
-      return SampleDataCategoryService.deleteSampleDataCategory(
-        sampleDataCategory,
-        session?.accessToken
-      )
-        .then((response) => {
-          parseDeleteResponse(response, 200);
-          this.sampleDataCategories = [
-            ...this.sampleDataCategories.filter(
-              (p: SampleDataCategory) => p.name !== sampleDataCategory.name
-            ),
-          ];
-          this.selectedSampleDataCategory = { ...newSampleDataCategory };
-        })
-        .catch((error: Error) => console.error(error));
-    },
-    async getSampleDataCategoriesAction(categoryName: string | null) {
-      this.loading = true;
-      const { getSession } = useAuth();
-      const session = await getSession();
-
-      return SampleDataCategoryService.getSampleDataCategories(
-        categoryName,
-        session?.accessToken
-      ).then((response) => {
-        this.sampleDataCategories = parseList(response);
-        this.selectedSampleDataCategory = { ...newSampleDataCategory };
-        this.loading = false;
-        this.lastLoadingDate = new Date();
-      });
-    },
-    async updateSampleDataCategoryAction(
-      sampleDataCategory: SampleDataCategory
-    ) {
-      const { getSession } = useAuth();
-      const session = await getSession();
-
-      return SampleDataCategoryService.updateSampleDataCategory(
-        sampleDataCategory,
-        session?.accessToken
-      )
-        .then((response) => {
-          const updatedSampleDataCategory: SampleDataCategory = parseItem(
-            response,
-            200
-          );
-          const index = this.sampleDataCategories.findIndex(
-            (h: SampleDataCategory) => h.id === updatedSampleDataCategory.id
-          );
-          this.sampleDataCategories.splice(index, 1, updatedSampleDataCategory);
-          this.sampleDataCategories = [...this.sampleDataCategories];
-          this.selectedSampleDataCategory = { ...newSampleDataCategory };
-        })
-        .catch((error: Error) => console.error(error));
-    },
-    async getSampleDataCategoryAction(id: number | undefined) {
-      if (id) {
-        const existingSampleDataCategory = this.sampleDataCategories.find(
-          (sampleDataCategory) => sampleDataCategory.id === id
+  async function addSampleDataCategoryAction(
+    sampleDataCategory: SampleDataCategory,
+    retry: boolean
+  ) {
+    const session = await getSession();
+    loading.value = true;
+    try {
+      const { data, error } = await useFetch<SampleDataCategory>(
+        `${BACKEND_API_URL}/api/sample-data-categories`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+          body: sampleDataCategory, // le type utilisé pour le corps doit correspondre à l'en-tête "Content-Type"
+        }
+      );
+      if (data.value) {
+        sampleDataCategories.value.unshift(data.value); // mutable addition
+        filteredSampleDataCategories.value.unshift(data.value); // mutable addition
+        selectedSampleDataCategory.value = data.value;
+      } else if (error.value) {
+        handleError(
+          addSampleDataCategoryAction,
+          signIn,
+          error.value,
+          retry,
+          sampleDataCategory
         );
-        if (existingSampleDataCategory) {
-          this.selectedSampleDataCategory = existingSampleDataCategory;
-          return existingSampleDataCategory;
-        } else {
-          const { getSession } = useAuth();
-          const session = await getSession();
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
 
-          return SampleDataCategoryService.getSampleDataCategory(
-            id,
-            session?.accessToken
-          ).then((response) => {
-            const sampleDataCategory: SampleDataCategory = parseItem(
-              response,
-              200
+  async function deleteSampleDataCategoryAction(
+    sampleDataCategory: SampleDataCategory,
+    retry: boolean
+  ) {
+    const session = await getSession();
+    loading.value = true;
+    try {
+      const { data, error } = await useFetch<SampleDataCategory>(
+        `${BACKEND_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        }
+      );
+      if (data.value) {
+        sampleDataCategories.value = [
+          ...sampleDataCategories.value.filter(
+            (p: SampleDataCategory) => p.id !== sampleDataCategory.id
+          ),
+        ];
+        filteredSampleDataCategories.value = [
+          ...filteredSampleDataCategories.value.filter(
+            (p: SampleDataCategory) => p.id !== sampleDataCategory.id
+          ),
+        ];
+        selectedSampleDataCategory.value = { ...newSampleDataCategory };
+      } else if (error.value) {
+        handleError(
+          deleteSampleDataCategoryAction,
+          signIn,
+          error.value,
+          retry,
+          sampleDataCategory
+        );
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
+  async function getSampleDataCategoriesAction(
+    name: string | null,
+    retry: boolean
+  ) {
+    loading.value = true;
+    const session = await getSession();
+
+    let url: string = `${BACKEND_API_URL}/api/sample-data-categories`;
+    if (name && name !== "") {
+      url = url + "?categoryName=" + name;
+    }
+
+    try {
+      const { data, error } = await useFetch<SampleDataCategory[]>(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      });
+
+      if (data.value) {
+        filteredSampleDataCategories.value = data.value;
+        selectedSampleDataCategory.value = { ...newSampleDataCategory };
+      } else if (error.value) {
+        handleError(
+          getSampleDataCategoriesAction,
+          signIn,
+          error.value,
+          retry,
+          name
+        );
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getAllSampleDataCategoriesAction(retry: boolean) {
+    loading.value = true;
+    const session = await getSession();
+
+    let url: string = `${BACKEND_API_URL}/api/sample-data-categories`;
+
+    try {
+      const { data, error } = await useFetch<SampleDataCategory[]>(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      });
+
+      if (data.value) {
+        sampleDataCategories.value = data.value;
+        filteredSampleDataCategories.value = data.value;
+        selectedSampleDataCategory.value = { ...newSampleDataCategory };
+        lastLoadingDate.value = new Date();
+      } else if (error.value) {
+        handleError(
+          getAllSampleDataCategoriesAction,
+          signIn,
+          error.value,
+          retry
+        );
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function updateSampleDataCategoryAction(
+    sampleDataCategory: SampleDataCategory,
+    retry: boolean
+  ) {
+    const session = await getSession();
+    loading.value = true;
+    try {
+      const { data, error } = await useFetch<SampleDataCategory>(
+        `${BACKEND_API_URL}/api/sample-data-categories/${sampleDataCategory.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+          body: sampleDataCategory,
+        }
+      );
+
+      if (data.value) {
+        updateElement(data.value, sampleDataCategories.value);
+        updateElement(data.value, filteredSampleDataCategories.value);
+        selectedSampleDataCategory.value = { ...newSampleDataCategory };
+      } else if (error.value) {
+        handleError(
+          updateSampleDataCategoryAction,
+          signIn,
+          error.value,
+          retry,
+          sampleDataCategory
+        );
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function getSampleDataCategoryAction(
+    id: number | undefined,
+    retry: boolean
+  ) {
+    if (id) {
+      const existingSampleDataCategory = sampleDataCategories.value.find(
+        (sampleDataCategory) => sampleDataCategory.id === id
+      );
+      if (existingSampleDataCategory) {
+        selectedSampleDataCategory.value = existingSampleDataCategory;
+      } else {
+        const session = await getSession();
+        loading.value = true;
+        try {
+          const { data, error } = await useFetch<SampleDataCategory>(
+            `${BACKEND_API_URL}/api/sample-data-categories/${id}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${session?.accessToken}`,
+              },
+            }
+          );
+          if (data.value) {
+            updateElement(data.value, sampleDataCategories.value);
+            updateElement(data.value, filteredSampleDataCategories.value);
+            selectedSampleDataCategory.value = { ...data.value };
+          } else if (error.value) {
+            handleError(
+              getSampleDataCategoryAction,
+              signIn,
+              error.value,
+              retry,
+              id
             );
-            const index = this.sampleDataCategories.findIndex(
-              (h: SampleDataCategory) => h.name === sampleDataCategory.name
-            );
-            this.sampleDataCategories.splice(index, 1, sampleDataCategory);
-            this.sampleDataCategories = [...this.sampleDataCategories];
-            this.selectedSampleDataCategory = { ...sampleDataCategory };
-          });
+          }
+        } catch (error) {
+          throw error;
+        } finally {
+          loading.value = false;
         }
       }
-    },
-    createNewSampleDataCategoryAction() {
-      this.selectedSampleDataCategory = { ...newSampleDataCategory };
-    },
-  },
+    }
+  }
+
+  function createNewSampleDataCategoryAction() {
+    selectedSampleDataCategory.value = { ...newSampleDataCategory };
+  }
+
+  return {
+    sampleDataCategories,
+    filteredSampleDataCategories,
+    selectedSampleDataCategory,
+    loading,
+    lastLoadingDate,
+    nameCriteria,
+    addSampleDataCategoryAction,
+    deleteSampleDataCategoryAction,
+    getSampleDataCategoriesAction,
+    getAllSampleDataCategoriesAction,
+    updateSampleDataCategoryAction,
+    getSampleDataCategoryAction,
+    createNewSampleDataCategoryAction,
+  };
 });

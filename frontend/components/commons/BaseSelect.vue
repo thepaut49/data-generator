@@ -16,7 +16,7 @@
         v-for="option in options"
         :key="option.label"
         :value="option.value"
-        :selected="option === modelValue"
+        :selected="isSelected(option)"
       >
         {{ option.label }}
       </option>
@@ -29,7 +29,7 @@ import { defineProps, watch } from "vue";
 import UniqueID from "../../features/UniqueID";
 
 const props = defineProps({
-  label: string,
+  label: String,
   multiple: {
     type: Boolean,
     default: false,
@@ -38,17 +38,19 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  modelValue: [Object | null],
+  modelValue: {
+    type: String | Number,
+  },
   disabled: {
     type: Boolean,
     default: false,
   },
   display: {
-    type: string,
+    type: String,
     default: "vertical",
   },
   cssClass: {
-    type: string,
+    type: String,
     required: true,
   },
 });
@@ -58,12 +60,18 @@ const uuid = UniqueID().getID();
 watch(
   () => props.modelValue,
   (newValue) => {
+    console.log("newValue = {}", newValue);
+    console.log("props.modelValue = {}", props.modelValue);
     // Emit an 'input' event with the selected value
-    if (newValue !== props.modelValue) {
+    if (props.modelValue != undefined && newValue !== props.modelValue) {
       emit("update:modelValue", newValue);
     }
   }
 );
+
+function isSelected(option) {
+  return props.modelValue != undefined && option.value === props.modelValue;
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,6 @@
 <template>
   <div :class="cssClass">
+    <label :for="uuid" v-if="label">{{ label }}</label>
     <input
       type="checkbox"
       :checked="modelValue"
@@ -7,7 +8,6 @@
       :id="uuid"
       :disabled="disabled"
     />
-    <label :for="uuid" v-if="label">{{ label }}</label>
   </div>
 </template>
 

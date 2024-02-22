@@ -1,20 +1,48 @@
 <template>
-  <section class="card category-card">
+  <section class="card data-card">
     <header class="card-header">
       <h1>
-        {{ category.name }}
+        {{ data.key }}
       </h1>
       <button class="close" @click="askToDelete">&times;</button>
     </header>
-    <main class="category-card-content">
+
+    <main class="data-card-content">
+      <BaseLabel
+        label="Catégorie de la donnée : "
+        :modelValue="data.categoryName"
+        cssClass="form-field-horizontal"
+      />
+
+      <BaseCheckbox
+        :modelValue="data.isBlobTypeValue"
+        cssClass="form-field-horizontal"
+        label="Donnée volumineuse"
+        disabled
+      />
+
+      <BaseLabel
+        v-if="data.isBlobTypeValue"
+        cssClass="form-field-horizontal"
+        :modelValue="data.blobValue"
+        label="Valeur de la donnée volumineuse : "
+      />
+
+      <BaseLabel
+        v-else
+        cssClass="form-field-horizontal"
+        :modelValue="data.value"
+        label="Valeur de la donnée : "
+      />
+
       <BaseLabel
         cssClass="form-field-horizontal"
-        :modelValue="category.modifiedAt"
+        :modelValue="data.modifiedAt"
         label="Modifié le : "
       />
       <BaseLabel
         cssClass="form-field-horizontal"
-        :modelValue="category.modifiedBy"
+        :modelValue="data.modifiedBy"
         label="Modifié par : "
       />
     </main>
@@ -29,35 +57,36 @@
 <script lang="ts">
 // declare additional options
 export default {
-  name: "SampleDataCategoryCard",
+  name: "SampleDataCard",
 };
 </script>
 
 <script setup lang="ts">
 import BaseLabel from "../../components/commons/BaseLabel.vue";
-import { useSampleDataCategory } from "../../store/SampleDataCategory";
+import BaseCheckbox from "../../components/commons/BaseCheckbox.vue";
+import { useSampleData } from "../../store/SampleData";
 import { isAPIError } from "../../utils/InterfaceUtils";
 
 const router = useRouter();
-const store = useSampleDataCategory();
+const store = useSampleData();
 
 const props = defineProps({
-  category: {
-    type: Object as () => SampleDataCategory, // Type assertion
+  data: {
+    type: Object as () => SampleData, // Type assertion
     required: true,
   },
 });
 
-const emit = defineEmits(["askToDeleteCategoryEvent"]);
+const emit = defineEmits(["askToDeleteDataEvent"]);
 
 const askToDelete = () => {
-  emit("askToDeleteCategoryEvent", props.category);
+  emit("askToDeleteDataEvent", props.data);
 };
 
 const goToElementDetails = () => {
-  const categoryName = props.category.name;
+  const id = props.data.id;
   try {
-    store.getSampleDataCategoryAction(props.category.id, false);
+    store.getSampleDataAction(props.data.id, false);
   } catch (errorStore) {
     if (isAPIError(errorStore)) {
       throw createError({
@@ -71,17 +100,17 @@ const goToElementDetails = () => {
       });
     }
   }
-  router.push("/sample-data-categories/" + categoryName);
+  router.push("/sample-datas/" + id);
 };
 </script>
 
 <style scoped>
-.category-card {
+.data-card {
   display: flex;
   flex-direction: column;
 }
 
-.category-card-content {
+.data-card-content {
   text-align: left;
   display: flex;
   flex-direction: column;

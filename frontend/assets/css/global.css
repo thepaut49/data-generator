@@ -35,7 +35,15 @@ body,
   transition: all 0.2s linear;
 }
 
-.card > h1 {
+.card-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.card-header > h1 {
+  font-size: 28px;
   margin: var(--min-margin);
 }
 
@@ -55,6 +63,17 @@ body,
 .card-footer-buttons > * {
   display: block;
   margin: var(--min-margin);
+}
+
+/** Modal **/
+
+.close {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  width: min-content;
+  height: min-content;
 }
 
 /** button in content **/
@@ -82,6 +101,12 @@ body,
 .form-field-horizontal {
   display: flex;
   align-items: center;
+}
+
+.form-field-horizontal-reverse {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
 }
 
 .form-field-horizontal > * {

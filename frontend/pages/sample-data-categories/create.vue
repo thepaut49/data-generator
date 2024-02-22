@@ -10,6 +10,8 @@
 <script setup>
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
 import SampleDataCategoryUpdateCard from "~~/components/SampleDataCategory/SampleDataCategoryUpdateCard.vue";
+import { handleErrorFromStore } from "../../utils/StoreUtils";
+
 const store = useSampleDataCategory();
 const router = useRouter();
 
@@ -17,14 +19,14 @@ const category = computed(() => {
   return store.selectedSampleDataCategory;
 });
 
-function saveNewCategorie() {
-  store.addSampleDataCategoryAction(category.value);
-  store.getSampleDataCategoriesAction(null);
+async function saveNewCategorie() {
+  try {
+  } catch (error) {}
+  store.addSampleDataCategoryAction(category.value, false);
   router.push("/sample-data-categories");
 }
 
 function cancel() {
-  store.getSampleDataCategoriesAction(null);
   router.push("/sample-data-categories");
 }
 </script>

@@ -10,7 +10,6 @@
 <script setup lang="ts">
 import { useSampleDataCategory } from "../../../store/SampleDataCategory";
 import SampleDataCategoryUpdateCard from "~~/components/SampleDataCategory/SampleDataCategoryUpdateCard.vue";
-import { useEntityNavigationButtons } from "../../../composables/EntityNavigationButtons";
 
 definePageMeta({
   layout: "sample-data-category",
@@ -24,20 +23,13 @@ const category = computed(() => {
 });
 
 function saveCategory() {
-  store.updateSampleDataCategoryAction(category.value);
-  store.getSampleDataCategoriesAction(null);
+  store.updateSampleDataCategoryAction(category.value, false);
   router.push("/sample-data-categories");
 }
 
 function cancel() {
-  store.getSampleDataCategoriesAction(null);
   router.push("/sample-data-categories");
 }
-
-const navigationButtons = useEntityNavigationButtons(
-  "/sample-data-categories/",
-  category.value.name
-);
 </script>
 
 <style scoped></style>

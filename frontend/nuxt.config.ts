@@ -1,5 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  runtimeConfig: {
+    // Public keys that are exposed to the client
+    public: {
+      BACKEND_API_URL: process.env.BACKEND_API_URL || "http://localhost:9090",
+    },
+  },
   modules: ["@sidebase/nuxt-auth", "@pinia/nuxt"],
   auth: {
     isEnabled: true,
@@ -21,5 +27,12 @@ export default defineNuxtConfig({
   },
   pinia: {
     storesDirs: ["./stores/**"],
+  },
+  build: {
+    transpile: [
+      "@fortawesome/fontawesome-svg-core",
+      "@fortawesome/free-solid-svg-icons",
+      "@fortawesome/vue-fontawesome",
+    ],
   },
 });
