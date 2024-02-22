@@ -19,11 +19,23 @@
         v-model="nameCriteria"
         cssClass="form-field-horizontal"
       />
+
+      <footer class="card-footer-buttons">
+        <button @click="searchCategory()">Rechercher</button>
+      </footer>
     </Accordion>
 
-    <div v-if="!loading">
+    <ErrorComponent title="Erreur" :message="error" />
+
+    <div
+      v-if="
+        !loading &&
+        filteredSampleDataCategories &&
+        filteredSampleDataCategories.length > 0
+      "
+    >
       <SampleDataCategoryCard
-        v-for="(sampleDataCategory, index) in sampleDataCategories"
+        v-for="(sampleDataCategory, index) in filteredSampleDataCategories"
         :key="index"
         :category="sampleDataCategory"
         :data-index="index"
@@ -53,59 +65,57 @@ export default {
 import { faPlus, faSync } from "@fortawesome/free-solid-svg-icons";
 import SampleDataCategoryCard from "@/components/SampleDataCategory/SampleDataCategoryCard.vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
-import { computed } from "vue";
-import { AxiosError } from "axios";
 import BaseInput from "~/components/commons/BaseInput.vue";
 import Accordion from "~/components/commons/Accordion.vue";
+import ErrorComponent from "~/components/commons/ErrorComponent.vue";
+import { storeToRefs } from "pinia";
 
-const { signIn } = useAuth();
 const router = useRouter();
 const store = useSampleDataCategory();
-const loading = computed(() => store.loading);
-const nameCriteria = ref("");
+let loading = ref(true);
+let error: Ref<any> = ref(null);
 
-function getData() {
-  // load data
-  store.getSampleDataCategoriesAction(null).catch((error) => {
-    console.error(error);
-    if (error instanceof AxiosError) {
-      if (error.response?.status === 401) {
-        signIn();
-      }
-    } else {
-      throw createError({
-        statusCode: 503,
-        statusMessage:
-          "Unable to fetch sampleDataCategorys at this time. Please try again.",
-      });
-    }
-  });
+async function getCategories() {
+  try {
+    loading.value = true;
+    await store.getAllSampleDataCategoriesAction(false);
+  } catch (errorStore) {
+    error.value = errorStore;
+  } finally {
+    loading.value = false;
+  }
 }
 
-getData();
+await getCategories();
 
-const sampleDataCategories = computed(() => {
-  return [...store.sampleDataCategories].filter((sampleDataCategory) =>
-    sampleDataCategory.name
-      .toLowerCase()
-      .includes(nameCriteria.value.toLowerCase())
-  );
-});
+const { filteredSampleDataCategories } = storeToRefs(store);
+const nameCriteria = ref("");
 
 function createNewCategorie() {
   store.createNewSampleDataCategoryAction();
   router.push("/sample-data-categories/create");
 }
 
-function reloadCategories() {
-  store.getSampleDataCategoriesAction(null);
-  router.push("/sample-data-categories");
+async function reloadCategories() {
+  nameCriteria.value = "";
+  await store.getAllSampleDataCategoriesAction(false);
 }
 
 const handleDeleteEvent = (sampleDataCategory: SampleDataCategory) => {
-  store.deleteSampleDataCategoryAction(sampleDataCategory);
+  store.deleteSampleDataCategoryAction(sampleDataCategory, false);
   router.push("/sample-data-categories");
 };
+
+async function searchCategory() {
+  try {
+    loading.value = true;
+    await store.getSampleDataCategoriesAction(nameCriteria.value, false);
+  } catch (errorCatch) {
+    error.value = errorCatch;
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 <style scoped>
 /* Your other styles here */

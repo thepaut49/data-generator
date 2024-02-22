@@ -1,4 +1,4 @@
 interface Option {
-  label: number;
-  value: Object;
+  label: number | string;
+  value: number | string | Object | undefined;
 }

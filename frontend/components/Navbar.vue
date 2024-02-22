@@ -2,7 +2,10 @@
   <nav>
     <section class="nav-section">
       <nuxt-link href="/">Home</nuxt-link>
-      <nuxt-link href="/sample-data-categories">Catégorie de données</nuxt-link>
+      <nuxt-link href="/sample-data-categories"
+        >Catégories de données</nuxt-link
+      >
+      <nuxt-link href="/sample-datas">Liste de données</nuxt-link>
       <!--nuxt-link href="/protected/globally">Globally Protected</!--nuxt-link>
       <nuxt-link-- href="/protected/locally">Locally Unprotected</nuxt-link-->
     </section>

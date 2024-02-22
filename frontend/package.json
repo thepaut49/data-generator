@@ -24,7 +24,6 @@
     "@pinia/nuxt": "^0.5.1",
     "@types/node": "^20.10.4",
     "@vueuse/core": "^10.7.0",
-    "axios": "^1.6.2",
     "next-auth": "^4.21.1",
     "pinia": "^2.1.7"
   }

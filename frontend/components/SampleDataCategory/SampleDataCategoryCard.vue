@@ -1,8 +1,11 @@
 <template>
   <section class="card category-card">
-    <h1>
-      {{ category.name }}
-    </h1>
+    <header class="card-header">
+      <h1>
+        {{ category.name }}
+      </h1>
+      <button class="close" @click="askToDelete">&times;</button>
+    </header>
     <main class="category-card-content">
       <BaseLabel
         cssClass="form-field-horizontal"
@@ -16,9 +19,6 @@
       />
     </main>
     <footer class="card-footer-buttons">
-      <button @click="askToDelete">
-        <span>Supprimer</span>
-      </button>
       <button @click="goToElementDetails">
         <span>Sélectioner</span>
       </button>
@@ -36,6 +36,7 @@ export default {
 <script setup lang="ts">
 import BaseLabel from "../../components/commons/BaseLabel.vue";
 import { useSampleDataCategory } from "../../store/SampleDataCategory";
+import { isAPIError } from "../../utils/InterfaceUtils";
 
 const router = useRouter();
 const store = useSampleDataCategory();
@@ -55,7 +56,21 @@ const askToDelete = () => {
 
 const goToElementDetails = () => {
   const categoryName = props.category.name;
-  store.getSampleDataCategoryAction(props.category.id);
+  try {
+    store.getSampleDataCategoryAction(props.category.id, false);
+  } catch (errorStore) {
+    if (isAPIError(errorStore)) {
+      throw createError({
+        statusCode: errorStore.status,
+        statusMessage: JSON.stringify(errorStore),
+      });
+    } else {
+      throw createError({
+        statusCode: 500,
+        statusMessage: JSON.stringify(errorStore),
+      });
+    }
+  }
   router.push("/sample-data-categories/" + categoryName);
 };
 </script>
