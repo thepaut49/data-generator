@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.validation.Valid;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -49,15 +51,20 @@ public class SampleDataService implements ISampleDataService, IGenericEntityServ
                 path,
                 Constants.CODE_SAMPLE_DATA_NOT_FOUND));
         SampleData previousVersion = getPreviousVersion(path, id, currentEntity.getVersion() - 1);
+        var versionsToCopyAfterSave = previousVersion.getVersions();
         previousVersion = entityRepository.save(previousVersion);
+        previousVersion.setVersions(versionsToCopyAfterSave);
         auditRepository.deleteFirstByIdOrderByVersionDesc(id);
         return convertEntityToUpdateDto(previousVersion);
     }
 
+    @Transactional
     @Override
     public SampleDataDto rollbackToVersion(String path, Long id, Long version) {
         SampleData specificVersion = getSpecificVersion(path, id, version);
+        var versionsToCopyAfterSave = specificVersion.getVersions();
         specificVersion = entityRepository.save(specificVersion);
+        specificVersion.setVersions(versionsToCopyAfterSave);
         auditRepository.deleteByIdAndVersionGreaterThanEqual(id, version);
         return convertEntityToUpdateDto(specificVersion);
     }
@@ -83,6 +90,7 @@ public class SampleDataService implements ISampleDataService, IGenericEntityServ
         SampleData updatedEntity = convertUpdateDtoToEntity(updateDto);
         updatedEntity.setVersion(updateDto.getVersion() + 1);
         updatedEntity.setModifiedBy(UserService.getUserId());
+        updatedEntity.setModifiedAt(LocalDateTime.now());
         updatedEntity = entityRepository.save(updatedEntity);
         // Construction de la liste des versions
         updatedEntity.setVersions(versions);

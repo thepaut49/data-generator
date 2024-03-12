@@ -1,0 +1,15 @@
+logging.level.org.springframework.security: DEBUG
+logging.level.org.apache.http: DEBUG
+
+spring.security.oauth2.resourceserver.jwt.issuer-uri: http://127.0.0.1:8080/realms/myrealm
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://127.0.0.1:8080/realms/myrealm/protocol/openid-connect/certs
+
+spring.jpa.show-sql: true
+spring.jpa.hibernate.format_sql: true
+spring.jpa.hibernate.ddl-auto: create
+spring.datasource.driver-class-name: org.postgresql.Driver
+
+
+springdoc.pathsToMatch:
+  - /api/**
+

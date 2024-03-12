@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 
-@CrossOrigin(origins = {"http://127.0.0.1:3000"}, maxAge = 3600)
+@CrossOrigin(origins = {"http://127.0.0.1:3000", "http://localhost"}, maxAge = 3600)
 @RestController
 @RequestMapping(path = Constants.BASE_PATH_SAMPLE_DATA_CATEGORY)
 @RequiredArgsConstructor
@@ -56,9 +56,9 @@ public class SampleDataCategoryController {
     }
 
     @DeleteMapping("{categoryId}")
-    public ResponseEntity<String> delete(@PathVariable Long categoryId) {
+    public ResponseEntity<Void> delete(@PathVariable Long categoryId) {
         sampleDataCategoryService.deleteById(categoryId);
-        return new ResponseEntity<>("Catégorie " + categoryId + " supprimée !", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("{categoryId}")
