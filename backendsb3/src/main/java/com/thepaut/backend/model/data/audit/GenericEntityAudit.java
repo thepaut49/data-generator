@@ -21,12 +21,11 @@ import java.util.List;
 @IdClass(EntityAuditId.class)
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class GenericEntityAudit implements Serializable {
+    @Id
+    protected Long id;
 
     @Id
-    protected long id;
-
-    @Id
-    protected long version;
+    protected Long version;
 
     @Column(name = "modified_by")
     protected String modifiedBy;

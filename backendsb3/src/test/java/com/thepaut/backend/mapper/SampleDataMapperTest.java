@@ -1,5 +1,9 @@
 package com.thepaut.backend.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.thepaut.backend.containers.keycloaktestcontainer.KeycloakTestContainer;
+import com.thepaut.backend.containers.postgressqltestcontainer.PostgresSqlTestContainer;
 import com.thepaut.backend.dto.SampleDataCreationDto;
 import com.thepaut.backend.dto.SampleDataDto;
 import com.thepaut.backend.dto.audit.SampleDataAuditDto;
@@ -7,16 +11,59 @@ import com.thepaut.backend.model.data.SampleData;
 import com.thepaut.backend.model.data.SampleDataCategory;
 import com.thepaut.backend.model.data.audit.SampleDataAudit;
 import com.thepaut.backend.utils.TestConstants;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
 class SampleDataMapperTest {
     private final SampleDataMapper mapper = SampleDataMapper.INSTANCE;
+
+    @LocalServerPort
+    private int port;
+
+    public static PostgreSQLContainer<PostgresSqlTestContainer> postgreSQLContainer = PostgresSqlTestContainer.getInstance();
+
+    public static KeycloakTestContainer keycloakContainer = KeycloakTestContainer.getInstance();
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @DynamicPropertySource
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", () -> postgreSQLContainer.getJdbcUrl());
+        registry.add("spring.datasource.username", () -> postgreSQLContainer.getUsername());
+        registry.add("spring.datasource.password", () -> postgreSQLContainer.getPassword());
+
+        registry.add("spring.security.oauth2.resourceserver.jwt.issuer-uri", () -> keycloakContainer.getAuthServerUrl() + "/realms/myrealm");
+        registry.add("spring.security.oauth2.resourceserver.jwk-set-uri", () -> keycloakContainer.getAuthServerUrl() + "/realms/myrealm/protocol/openid-connect/certs");
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        postgreSQLContainer.start();
+        keycloakContainer.start();
+        objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    @AfterAll
+    static void afterAll() {
+        postgreSQLContainer.stop();
+        keycloakContainer.stop();
+    }
 
     @Test
     void convertUpdateDtoToEntity() {
@@ -29,7 +76,7 @@ class SampleDataMapperTest {
 
         Assertions.assertEquals(TestConstants.ID, entity.getId());
         Assertions.assertEquals(TestConstants.CATEGORY_ID, entity.getCategory().getId());
-        Assertions.assertEquals(TestConstants.CATEGORY_NAME, entity.getCategory().getName());
+        Assertions.assertEquals(TestConstants.CATEGORY_NAME_5, entity.getCategory().getName());
         Assertions.assertEquals(TestConstants.KEY_NAME, entity.getKey());
         Assertions.assertNull(entity.getValue());
         Assertions.assertTrue(entity.isBlobTypeValue());
@@ -51,7 +98,7 @@ class SampleDataMapperTest {
 
         Assertions.assertEquals(TestConstants.ID, updateDto.getId());
         Assertions.assertEquals(TestConstants.CATEGORY_ID, updateDto.getCategoryId());
-        Assertions.assertEquals(TestConstants.CATEGORY_NAME, updateDto.getCategoryName());
+        Assertions.assertEquals(TestConstants.CATEGORY_NAME_5, updateDto.getCategoryName());
         Assertions.assertEquals(TestConstants.KEY_NAME, updateDto.getKey());
         Assertions.assertNull(updateDto.getBlobValue());
         Assertions.assertFalse(updateDto.isBlobTypeValue());
@@ -128,7 +175,7 @@ class SampleDataMapperTest {
         var updateDto = new SampleDataDto();
         updateDto.setId(id);
         updateDto.setCategoryId(categoryId);
-        updateDto.setCategoryName(TestConstants.CATEGORY_NAME);
+        updateDto.setCategoryName(TestConstants.CATEGORY_NAME_5);
         updateDto.setKey(key);
         updateDto.setBlobTypeValue(isBlobValue);
         if (isBlobValue) {
@@ -148,7 +195,7 @@ class SampleDataMapperTest {
         SampleDataAuditDto auditDto = new SampleDataAuditDto();
         auditDto.setId(id);
         auditDto.setCategoryId(categoryId);
-        auditDto.setCategoryName(TestConstants.CATEGORY_NAME);
+        auditDto.setCategoryName(TestConstants.CATEGORY_NAME_5);
         auditDto.setKey(key);
         auditDto.setBlobTypeValue(isBlobValue);
         if (isBlobValue) {
@@ -165,7 +212,7 @@ class SampleDataMapperTest {
     private static SampleData createEntity(Long id, Long categoryId, String key, String value, boolean isBlobValue, Long version, LocalDateTime now, LocalDateTime yesterday, String user) {
         var categoryEntity = new  SampleDataCategory();
         categoryEntity.setId(categoryId);
-        categoryEntity.setName(TestConstants.CATEGORY_NAME);
+        categoryEntity.setName(TestConstants.CATEGORY_NAME_5);
         var entity = new SampleData();
         entity.setId(id);
         entity.setCategory(categoryEntity);

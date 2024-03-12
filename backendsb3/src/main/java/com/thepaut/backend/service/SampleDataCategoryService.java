@@ -10,14 +10,16 @@ import com.thepaut.backend.model.data.audit.SampleDataCategoryAudit;
 import com.thepaut.backend.repository.data.SampleDataCategoryRepository;
 import com.thepaut.backend.repository.data.audit.SampleDataCategoryAuditRepository;
 import com.thepaut.backend.utils.Constants;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
+
 
 @RequiredArgsConstructor
 @Service
@@ -44,7 +46,9 @@ public class SampleDataCategoryService implements ISampleDataCategoryService, IG
                 path,
                 Constants.CODE_SAMPLE_DATA_CATEGORY_NOT_FOUND));
         SampleDataCategory previousVersion = getPreviousVersion(path, id,currentSampleDataCategory.getVersion() - 1);
+        var versionsToCopyAfterSave = previousVersion.getVersions();
         previousVersion = entityRepository.save(previousVersion);
+        previousVersion.setVersions(versionsToCopyAfterSave);
         auditRepository.deleteFirstByIdOrderByVersionDesc(id);
         return convertEntityToUpdateDto(previousVersion);
     }
@@ -53,7 +57,9 @@ public class SampleDataCategoryService implements ISampleDataCategoryService, IG
     @Override
     public SampleDataCategoryDto rollbackToVersion(String path, Long id, Long version) {
         SampleDataCategory specificVersion = getSpecificVersion(path, id,version);
+        var versionsToCopyAfterSave = specificVersion.getVersions();
         specificVersion = entityRepository.save(specificVersion);
+        specificVersion.setVersions(versionsToCopyAfterSave);
         auditRepository.deleteByIdAndVersionGreaterThanEqual(id,version);
         return convertEntityToUpdateDto(specificVersion);
     }
@@ -80,6 +86,7 @@ public class SampleDataCategoryService implements ISampleDataCategoryService, IG
         SampleDataCategory updatedSampleDataCategory = convertUpdateDtoToEntity(updateDto);
         updatedSampleDataCategory.setVersion(updateDto.getVersion() + 1);
         updatedSampleDataCategory.setModifiedBy(UserService.getUserId());
+        updatedSampleDataCategory.setModifiedAt(LocalDateTime.now());
         updatedSampleDataCategory = entityRepository.save(updatedSampleDataCategory);
         // Construction de la liste des versions
         updatedSampleDataCategory.setVersions(versions);

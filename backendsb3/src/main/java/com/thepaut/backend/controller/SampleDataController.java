@@ -40,20 +40,20 @@ public class SampleDataController {
         return ResponseEntity.status(HttpStatus.OK).body(sampleDataService.updateEntity(request.getRequestURI(), id, sampleDataDto));
     }
 
-    @PutMapping("{id}/rollback")
+    @PutMapping("{id}/rollback-to-previous-version")
     public ResponseEntity<SampleDataDto> rollbackToPreviousVersion(HttpServletRequest request, @PathVariable Long id) {
         return  ResponseEntity.status(HttpStatus.OK).body(sampleDataService.rollbackToPreviousVersion(request.getRequestURI(), id));
     }
 
-    @PutMapping("{id}/rollback/{version}")
+    @PutMapping("{id}/rollback-to-version/{version}")
     public ResponseEntity<SampleDataDto> rollbackToVersion(HttpServletRequest request, @PathVariable Long id, @PathVariable Long version ) {
         return ResponseEntity.status(HttpStatus.OK).body(sampleDataService.rollbackToVersion(request.getRequestURI(), id, version));
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         sampleDataService.deleteById(id);
-        return new ResponseEntity<>("Donnée " + id +  " supprimée !", HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping("{id}")
